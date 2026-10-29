@@ -68,7 +68,7 @@ jobs:
       - name: Show OIDC claims (debug)
         run: |
           T=$(curl -sH "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r .value)
-          echo "$T" | cut -d. -f2 | tr '_-' '/+' | base64 -d 2>/dev/null | jq '{sub,aud,repository,repository_owner,environment,ref}' || true
+          echo "$T" | cut -d. -f2 | tr '_-' '/+' | base64 -d 2>/dev/null | jq -r '"::notice::sub=\(.sub) env=\(.environment) repo=\(.repository)"' || echo "::notice::decode failed"
 
       - name: Assume the deploy role
         uses: aws-actions/configure-aws-credentials@v4
