@@ -59,7 +59,7 @@ MARK = """<svg class="logo__mark" width="26" height="26" viewBox="0 0 26 26" fil
 </svg>"""
 
 
-def shell(*, title, desc, path, body, page_class="", og=None):
+def shell(*, title, desc, path, body, page_class="", og=None, css=(), scripts=()):
     """Wrap page body in the site chrome."""
     nav = "\n".join(
         '        <a href="{href}"{cur}>{label}</a>'.format(
@@ -88,6 +88,11 @@ def shell(*, title, desc, path, body, page_class="", og=None):
 
     full_title = title if title == SITE else f"{title} · {SITE}"
     og_img = og or OG.get(path, "/assets/og.png")
+    extra = EXTRAS.get(path, {})
+    css = tuple(css) + tuple(extra.get("css", ()))
+    scripts = tuple(scripts) + tuple(extra.get("scripts", ()))
+    css_tags = "".join(f'\n<link rel="stylesheet" href="{h}">' for h in css)
+    script_tags = "".join(f'\n<script src="{h}" defer></script>' for h in scripts)
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -109,7 +114,7 @@ def shell(*, title, desc, path, body, page_class="", og=None):
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://{DOMAIN}{og_img}">
 <meta name="theme-color" content="#090E15">
-<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/css/site.css">{css_tags}
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
@@ -140,7 +145,7 @@ def shell(*, title, desc, path, body, page_class="", og=None):
       <span>Vale, AnimaPlanet, Yarr, AbyssFall, Oon and VERSUS are marks of Goggles &amp; Windchimes.</span>
     </div>
   </div>
-</footer>
+</footer>{script_tags}
 </body>
 </html>
 """
@@ -149,6 +154,16 @@ def shell(*, title, desc, path, body, page_class="", og=None):
 # Per-page social cards (1200x630). Pages not listed use the site card.
 OG = {
     "/games/versus/": "/assets/img/versus/og-versus.jpg",
+    "/vale/atlas/":   "/assets/img/vale/og-atlas.jpg",
+}
+
+# Per-page extra stylesheets and scripts. Everything is self-hosted: the site CSP is 'self'.
+EXTRAS = {
+    "/vale/atlas/": {
+        "css": ["/assets/vale/globe.css"],
+        "scripts": ["/assets/vale/three.min.js", "/assets/vale/OrbitControls.js",
+                    "/assets/vale/places.js", "/assets/vale/globe.js"],
+    },
 }
 
 
@@ -949,14 +964,18 @@ vale = """
 <section id="atlas">
   <div class="wrap">
     <p class="eyebrow">Atlas</p>
-    <h2>Maps</h2>
+    <h2>The world, in the round</h2>
     <div class="prose">
       <p class="dek">
-        Vale is mapped the way a surveyor would want it: a full terrain plate of Ometia, a
-        biome map with an eleven-class legend, a scale-and-distance chart, and named plates
-        for the Easterly Kingdoms and the Westerly State. The atlas plates will be published
-        here.
+        Vale is mapped the way a surveyor would want it: a terrain plate of Ometia, biome
+        maps, a scale-and-distance chart, and named plates for the Easterly Kingdoms and the
+        Westerly State. All of it is now wrapped onto one globe you can turn, with 170-odd
+        named places, four surface layers and the Laputan storm track.
       </p>
+    </div>
+<!--ATLAS-->
+    <div class="btn-row">
+      <a class="btn" href="/vale/atlas/">Open the atlas</a>
     </div>
   </div>
 </section>
@@ -1123,6 +1142,93 @@ about = """
 </section>
 """
 
+vale = vale.replace("<!--ATLAS-->", f"""    <div class="shot-grid shot-grid--one">
+      {figure("/assets/img/vale/atlas", "The Vale globe showing Ometia with realm and place names",
+              "Ometia, the supercontinent: 86% of Vale's dry land.")}
+    </div>""")
+
+
+# ===========================================================================
+# Vale atlas (interactive globe)
+# ===========================================================================
+
+atlas = """
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow"><a href="/vale/">The Vale Universe</a></p>
+    <h1 class="hero__title">Atlas of Vale</h1>
+    <p class="lede hero__lede">
+      Ometia, the O&rsquo;Pinne Seas and everything between them, on a globe you can turn.
+      Click into it, then drag to rotate and scroll or pinch to zoom. Tap a name for its
+      entry.
+    </p>
+  </div>
+</section>
+
+<section class="globe-section" aria-label="Interactive globe">
+  <div class="globe" id="globe">
+    <div class="globe__stage" id="stage"></div>
+    <div class="globe__labels" id="labels"></div>
+    <div class="globe__load" id="load">CHARTING VALE&hellip;</div>
+    <noscript><p class="globe__load">The atlas needs JavaScript and WebGL.</p></noscript>
+
+    <div class="globe__rail">
+      <div class="globe__card">
+        <h2 class="globe__title">Vale</h2>
+        <p class="globe__sub">Ometia and the O&rsquo;Pinne Seas &middot; <b>29,400</b> mi around &middot; tilt <b>22.5&deg;</b></p>
+        <div class="globe__seg" role="group" aria-label="Map layer">
+          <button type="button" aria-pressed="true" data-l="terrain">Terrain</button>
+          <button type="button" aria-pressed="false" data-l="biome">Biomes</button>
+          <button type="button" aria-pressed="false" data-l="climate">Climate</button>
+          <button type="button" aria-pressed="false" data-l="art">Map art</button>
+        </div>
+        <div class="globe__chips">
+          <label><input type="checkbox" id="o-names" checked><span>Names</span></label>
+          <label><input type="checkbox" id="o-grid" checked><span>Graticule</span></label>
+          <label><input type="checkbox" id="o-laputa"><span>Laputan storm track</span></label>
+          <label><input type="checkbox" id="o-spin"><span>Spin</span></label>
+        </div>
+      </div>
+      <div class="globe__card">
+        <input class="globe__q" id="q" type="search" placeholder="Find a place &mdash; e.g. Noaisau" autocomplete="off" aria-label="Find a place">
+        <ul class="globe__hits" id="hits"></ul>
+      </div>
+      <div class="globe__card globe__legend" id="legend"></div>
+    </div>
+
+    <div class="globe__info" id="info" hidden>
+      <div class="globe__card">
+        <button type="button" class="globe__x" id="close" aria-label="Close">&times;</button>
+        <div id="infobody" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="globe__hint">Click in, then drag to turn &middot; scroll or pinch to zoom &middot; tap a name</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="prose">
+      <p class="eyebrow">About the maps</p>
+      <h2>How it was put together</h2>
+      <p class="dek">
+        Every coastline comes from the hand-drawn maps of Vale. The surveyed plate of Ometia
+        sets where the land sits; the named Westerly and Easterly maps add the newer islands
+        and the place names; the world sheet carries the O&rsquo;Pinne. Names were read off
+        those maps by eye, so a town can be out by fifteen miles or so.
+      </p>
+      <p class="dek">
+        The world is an equirectangular sheet 29,400 miles around with a 22.5&deg; axial tilt,
+        so the tropics sit at 22.5&deg; and the polar circles at 67.5&deg;. The poles beyond
+        the drawn sheet are ice. The climate layer is worked out from biome and latitude
+        rather than drawn, and the O&rsquo;Pinne shows nation centres only; its cities
+        aren&rsquo;t mapped yet.
+      </p>
+    </div>
+  </div>
+</section>
+"""
+
 # ===========================================================================
 # Credits
 # ===========================================================================
@@ -1160,6 +1266,29 @@ credits = """
         <span class="stack__k">Leaflet</span>
         <span class="stack__v">
           Map rendering by Leaflet, BSD-2-Clause.
+        </span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Atlas of Vale</p>
+    <h2>Attribution</h2>
+    <ul class="stack">
+      <li>
+        <span class="stack__k">Maps</span>
+        <span class="stack__v">
+          All maps of Vale are original work of Goggles &amp; Windchimes.
+        </span>
+      </li>
+      <li>
+        <span class="stack__k">three.js</span>
+        <span class="stack__v">
+          Globe rendering by three.js, &copy; 2010&ndash;2021 three.js authors,
+          <a href="https://github.com/mrdoob/three.js/blob/r128/LICENSE">MIT licence</a>.
+          Served from this domain.
         </span>
       </li>
     </ul>
@@ -1227,6 +1356,7 @@ PAGES = [
     ("/tabletop/",           "Tabletop",             "Tabletop roleplaying games from Goggles & Windchimes, including A Vale Beyond and the Yarr system.", tabletop),
     ("/tabletop/avb/",       "A Vale Beyond",        "An original-system tabletop RPG built on Anima, set in the ecology-first world of Vale.", avb),
     ("/tabletop/yarr/",      "The Yarr System",      "Yes A Lot of Recording & Rolling — the homemade RPG engine the Vale Universe grew out of.", yarr),
+    ("/vale/atlas/",         "Atlas of Vale",        "An interactive globe of Vale: Ometia, the O'Pinne Seas, 170-odd named places, terrain, biome and climate layers.", atlas),
     ("/vale/",               "The Vale Universe",    "Vale is the dying heart of Thea. Maps, languages, bestiary and timeline of a forty-year setting.", vale),
     ("/press/",              "Press Kit",            "Press assets and boilerplate for Goggles & Windchimes.", press),
     ("/about/",              "About",                "Goggles for the tinkering. Windchimes for the rest. The story of the imprint.", about),

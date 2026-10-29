@@ -1,0 +1,117 @@
+/* Atlas of Vale globe. Loaded only on /vale/atlas/. Everything is scoped to .globe. */
+
+.globe-section { padding-block: 0; }
+
+.globe {
+  position: relative;
+  height: clamp(34rem, 82vh, 56rem);
+  overflow: hidden;
+  background: #0b0f17;
+  border-block: 1px solid var(--rule);
+  color: var(--paper);
+  font-family: var(--sans);
+}
+.globe__stage { position: absolute; inset: 0; }
+.globe__stage canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+.globe--active .globe__stage canvas:active { cursor: grabbing; }
+
+.globe__labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.globe__labels[hidden] { display: none; }
+
+.lb {
+  position: absolute; left: 0; top: 0; white-space: nowrap; transform-origin: 0 0; will-change: transform;
+  pointer-events: auto; cursor: pointer; font-family: var(--serif); color: #e9e3d3;
+  text-shadow: 0 0 3px #000, 0 0 6px rgba(0,0,0,.8); font-size: 13px; line-height: 1;
+}
+.lb::before {
+  content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: #e9e3d3;
+  margin-right: 5px; vertical-align: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,.7);
+}
+.lb--city { font-size: 14.5px; }
+.lb--city::before, .lb--keep::before { width: 7px; height: 7px; border-radius: 1px; transform: rotate(45deg); background: var(--brass); }
+.lb--water::before, .lb--forest::before, .lb--feature::before { background: transparent; box-shadow: none; width: 0; margin: 0; }
+.lb--forest, .lb--feature { font-style: italic; color: #cfe1b8; }
+.lb--water { font-style: italic; color: #8fb7d4; }
+.lb--sea { font-style: italic; color: #8fb7d4; font-size: 15px; letter-spacing: .12em; pointer-events: none; }
+.lb--sea::before, .lb--region::before, .lb--nation::before { display: none; }
+.lb--region, .lb--nation { color: var(--brass); font-size: 16px; letter-spacing: .14em; text-transform: uppercase; }
+.lb--region.lb--big { font-size: 23px; letter-spacing: .3em; color: #f0d79a; }
+.lb--sel { color: #fff; text-decoration: underline; text-decoration-color: var(--brass); text-underline-offset: 3px; }
+.lb:focus-visible { outline: 1px solid var(--brass); }
+
+.globe__rail {
+  position: absolute; top: 12px; left: 16px; z-index: 5;
+  width: min(300px, calc(100% - 32px)); display: flex; flex-direction: column; gap: 10px;
+}
+.globe__card {
+  background: rgba(13,20,29,.84); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px;
+}
+.globe__title { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 1.5rem; letter-spacing: .08em; line-height: 1.05; }
+.globe__sub { margin: 4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
+.globe__sub b { color: var(--paper); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+.globe__seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 10px; }
+.globe__seg button, .globe__chips label {
+  font: 500 13px var(--sans); color: var(--muted); background: transparent;
+  border: 1px solid var(--rule); border-radius: 4px; padding: 6px 0; cursor: pointer;
+}
+.globe__seg button[aria-pressed="true"] { color: var(--ink-900); background: var(--brass); border-color: var(--brass); }
+.globe__seg button:focus-visible, .globe__chips input:focus-visible + span, .globe__q:focus-visible, .globe__x:focus-visible {
+  outline: 2px solid var(--brass); outline-offset: 1px;
+}
+.globe__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.globe__chips label { display: flex; align-items: center; gap: 6px; padding: 4px 8px; }
+.globe__chips input { accent-color: var(--brass); margin: 0; }
+
+.globe__q {
+  width: 100%; font: 400 14px var(--sans); color: var(--paper); background: rgba(0,0,0,.35);
+  border: 1px solid var(--rule); border-radius: 4px; padding: 8px 10px;
+}
+.globe__q::placeholder { color: var(--muted); }
+.globe__hits { list-style: none; margin: 6px 0 0; padding: 0; max-height: 220px; overflow: auto; }
+.globe__hits:empty { display: none; }
+.globe__hits button {
+  all: unset; display: flex; justify-content: space-between; gap: 8px; width: 100%; box-sizing: border-box;
+  padding: 5px 6px; border-radius: 3px; cursor: pointer; font-size: 14px;
+}
+.globe__hits button:hover, .globe__hits button:focus-visible { background: rgba(217,164,65,.16); }
+.globe__hits small { color: var(--muted); font-size: 12px; text-align: right; }
+
+.globe__legend { font-size: 12.5px; }
+.globe__lt { font-family: var(--serif); letter-spacing: .1em; font-size: 13px; color: var(--brass); margin-bottom: 6px; }
+.globe__lg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }
+.globe__lg i { display: inline-block; width: 11px; height: 11px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(0,0,0,.4); }
+.globe__legend p { margin: 6px 0 0; color: var(--muted); line-height: 1.35; }
+.globe__ln { display: inline-block; width: 18px; height: 0; border-top: 2px dashed #ff9d5c; margin-right: 6px; vertical-align: 3px; }
+
+.globe__info { position: absolute; right: 16px; bottom: 16px; width: min(340px, calc(100% - 32px)); z-index: 6; }
+.globe__info[hidden] { display: none; }
+.globe__info .globe__card { position: relative; }
+.globe__info h3 { margin: 0 26px 2px 0; font-family: var(--serif); font-weight: 400; font-size: 1.35rem; letter-spacing: .04em; line-height: 1.1; }
+.globe__meta { color: var(--brass); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.globe__info p { margin: 8px 0 0; line-height: 1.45; font-size: 14px; }
+.globe__dim { color: var(--muted); }
+.globe__info dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 10px 0 0; font-size: 13px; }
+.globe__info dt { color: var(--muted); }
+.globe__info dd { margin: 0; font-variant-numeric: tabular-nums; }
+.globe__x { position: absolute; top: 8px; right: 10px; background: none; border: 0; color: var(--muted); font-size: 20px; cursor: pointer; line-height: 1; }
+
+.globe__hint {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); color: var(--muted);
+  font-size: 12.5px; pointer-events: none; text-shadow: 0 0 4px #000; white-space: nowrap;
+}
+.globe__load {
+  position: absolute; inset: 0; display: grid; place-items: center; padding: 2rem; text-align: center;
+  font-family: var(--serif); letter-spacing: .2em; color: var(--brass); pointer-events: none;
+}
+.globe__load[hidden] { display: none; }
+
+@media (max-width: 40rem) {
+  .globe { height: 78vh; }
+  .globe__legend, .globe__hint, .globe__title, .globe__sub, .globe__chips { display: none; }
+  .globe__rail { top: 8px; left: 8px; width: calc(100% - 16px); gap: 6px; }
+  .globe__card { padding: 8px 10px; }
+  .globe__seg { margin-top: 0; }
+  .globe__info { left: 16px; width: auto; }
+}

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlas of Vale · Goggles &amp; Windchimes</title>
+<meta name="description" content="An interactive globe of Vale: Ometia, the O&#x27;Pinne Seas, 170-odd named places, terrain, biome and climate layers.">
+<link rel="canonical" href="https://gandw.io/vale/atlas/">
+<meta property="og:site_name" content="Goggles &amp; Windchimes">
+<meta property="og:title" content="Atlas of Vale · Goggles &amp; Windchimes">
+<meta property="og:description" content="An interactive globe of Vale: Ometia, the O&#x27;Pinne Seas, 170-odd named places, terrain, biome and climate layers.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gandw.io/vale/atlas/">
+<meta property="og:image" content="https://gandw.io/assets/img/vale/og-atlas.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Goggles &amp; Windchimes">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gandw.io/assets/img/vale/og-atlas.jpg">
+<meta name="theme-color" content="#090E15">
+<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/vale/globe.css">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="masthead">
+  <div class="wrap masthead__inner">
+    <a class="logo" href="/"><svg class="logo__mark" width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+  <circle cx="8.5" cy="9" r="5.2" stroke="#D9A441" stroke-width="1.5"/>
+  <path d="M13.7 9h2.2" stroke="#D9A441" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M17.5 4.5v8M21 4.5v12M24 4.5v6" stroke="#6FAE9C" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M16.6 4.5h8.2" stroke="#6FAE9C" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="8.5" cy="9" r="1.6" fill="#D9A441"/>
+</svg><span>Goggles <span class="logo__amp">&amp;</span> Windchimes</span></a>
+    <nav class="nav" aria-label="Primary">
+        <a href="/games/">Games</a>
+        <a href="/tabletop/">Tabletop</a>
+        <a href="/vale/" aria-current="page">The Vale Universe</a>
+        <a href="/press/">Press</a>
+        <a href="/about/">About</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow"><a href="/vale/">The Vale Universe</a></p>
+    <h1 class="hero__title">Atlas of Vale</h1>
+    <p class="lede hero__lede">
+      Ometia, the O&rsquo;Pinne Seas and everything between them, on a globe you can turn.
+      Click into it, then drag to rotate and scroll or pinch to zoom. Tap a name for its
+      entry.
+    </p>
+  </div>
+</section>
+
+<section class="globe-section" aria-label="Interactive globe">
+  <div class="globe" id="globe">
+    <div class="globe__stage" id="stage"></div>
+    <div class="globe__labels" id="labels"></div>
+    <div class="globe__load" id="load">CHARTING VALE&hellip;</div>
+    <noscript><p class="globe__load">The atlas needs JavaScript and WebGL.</p></noscript>
+
+    <div class="globe__rail">
+      <div class="globe__card">
+        <h2 class="globe__title">Vale</h2>
+        <p class="globe__sub">Ometia and the O&rsquo;Pinne Seas &middot; <b>29,400</b> mi around &middot; tilt <b>22.5&deg;</b></p>
+        <div class="globe__seg" role="group" aria-label="Map layer">
+          <button type="button" aria-pressed="true" data-l="terrain">Terrain</button>
+          <button type="button" aria-pressed="false" data-l="biome">Biomes</button>
+          <button type="button" aria-pressed="false" data-l="climate">Climate</button>
+          <button type="button" aria-pressed="false" data-l="art">Map art</button>
+        </div>
+        <div class="globe__chips">
+          <label><input type="checkbox" id="o-names" checked><span>Names</span></label>
+          <label><input type="checkbox" id="o-grid" checked><span>Graticule</span></label>
+          <label><input type="checkbox" id="o-laputa"><span>Laputan storm track</span></label>
+          <label><input type="checkbox" id="o-spin"><span>Spin</span></label>
+        </div>
+      </div>
+      <div class="globe__card">
+        <input class="globe__q" id="q" type="search" placeholder="Find a place &mdash; e.g. Noaisau" autocomplete="off" aria-label="Find a place">
+        <ul class="globe__hits" id="hits"></ul>
+      </div>
+      <div class="globe__card globe__legend" id="legend"></div>
+    </div>
+
+    <div class="globe__info" id="info" hidden>
+      <div class="globe__card">
+        <button type="button" class="globe__x" id="close" aria-label="Close">&times;</button>
+        <div id="infobody" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="globe__hint">Click in, then drag to turn &middot; scroll or pinch to zoom &middot; tap a name</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="prose">
+      <p class="eyebrow">About the maps</p>
+      <h2>How it was put together</h2>
+      <p class="dek">
+        Every coastline comes from the hand-drawn maps of Vale. The surveyed plate of Ometia
+        sets where the land sits; the named Westerly and Easterly maps add the newer islands
+        and the place names; the world sheet carries the O&rsquo;Pinne. Names were read off
+        those maps by eye, so a town can be out by fifteen miles or so.
+      </p>
+      <p class="dek">
+        The world is an equirectangular sheet 29,400 miles around with a 22.5&deg; axial tilt,
+        so the tropics sit at 22.5&deg; and the polar circles at 67.5&deg;. The poles beyond
+        the drawn sheet are ice. The climate layer is worked out from biome and latitude
+        rather than drawn, and the O&rsquo;Pinne shows nation centres only; its cities
+        aren&rsquo;t mapped yet.
+      </p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__grid">
+          <div>
+            <h2>Games</h2>
+            <ul>
+              <li><a href="/games/versus/">VERSUS</a></li>
+              <li><a href="/games/abyssfall/">AbyssFall</a></li>
+              <li><a href="/games/oon/">Oon</a></li>
+              <li><a href="/games/concord/">Concord</a></li>
+              <li><a href="/games/mcguffins/">Miniatures &amp; McGuffins</a></li>
+              <li><a href="/games/archive/">Archive</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Tabletop</h2>
+            <ul>
+              <li><a href="/tabletop/avb/">A Vale Beyond</a></li>
+              <li><a href="/tabletop/yarr/">The Yarr System</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>The World</h2>
+            <ul>
+              <li><a href="/vale/">The Vale Universe</a></li>
+              <li><a href="/vale/#atlas">Maps &amp; Atlas</a></li>
+              <li><a href="/vale/#script">The Valesian Script</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Imprint</h2>
+            <ul>
+              <li><a href="/about/">About</a></li>
+              <li><a href="/press/">Press Kit</a></li>
+              <li><a href="/credits/">Credits &amp; Licences</a></li>
+            </ul>
+          </div>
+    </div>
+    <div class="foot__legal">
+      <span>&copy; 2026 Goggles &amp; Windchimes. All rights reserved.</span>
+      <span>Vale, AnimaPlanet, Yarr, AbyssFall, Oon and VERSUS are marks of Goggles &amp; Windchimes.</span>
+    </div>
+  </div>
+</footer>
+<script src="/assets/vale/three.min.js" defer></script>
+<script src="/assets/vale/OrbitControls.js" defer></script>
+<script src="/assets/vale/places.js" defer></script>
+<script src="/assets/vale/globe.js" defer></script>
+</body>
+</html>

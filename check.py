@@ -48,6 +48,15 @@ PLACEHOLDERS = [
 ]
 
 
+# Terms from the author-only canon that must never reach the public site. Matched against
+# page text AND against scripts/data files (the atlas gazetteer lives in a .js file).
+RESTRICTED = [
+    (re.compile(r"GM[- ]only|Secret Canon|Restricted canon|AUTHOR_ONLY", re.I), "restricted canon marker"),
+    (re.compile(r"Toffee", re.I), "restricted canon term (Toffee Corp)"),
+    (re.compile(r"eighth sage|third sister", re.I), "restricted canon term"),
+]
+
+
 class Page(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -163,6 +172,9 @@ def main():
 
         # --- placeholder text ---
         text = re.sub(r"<[^>]+>", " ", body)
+        for rx, label in RESTRICTED:
+            if rx.search(text):
+                problems[path].append(label)
         for rx, label in PLACEHOLDERS:
             haystack = body if label.startswith("inline style") else text
             if rx.search(haystack):
@@ -191,9 +203,13 @@ def main():
             if a in checked_assets:
                 continue
             checked_assets.add(a)
-            st, _, _ = fetch(base + a)
+            st, abody, actype = fetch(base + a)
             if st == 200:
                 assets_ok += 1
+                if a.endswith((".js", ".json")):
+                    for rx, label in RESTRICTED:
+                        if rx.search(abody):
+                            problems[a].append(f"{label}")
             else:
                 problems[path].append(f"asset {a} -> HTTP {st}")
 
