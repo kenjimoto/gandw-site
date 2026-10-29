@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+
+# Superseded edition (ISBN placeholder + old domain). Kept in the local folder only.
+assets/downloads/Oon_Publication_v2.pdf

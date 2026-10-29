@@ -1,0 +1,12 @@
+# Files that live in the repo but must NOT be uploaded to S3.
+build.py
+serve.py
+check.py
+LOCAL_DEV.md
+README.md
+__pycache__/
+.deployignore
+.gitkeep
+# Superseded edition: ISBN placeholder + old domain. Never publish.
+assets/downloads/Oon_Publication_v2.pdf
+.gitignore

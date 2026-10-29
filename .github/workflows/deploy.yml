@@ -1,0 +1,108 @@
+name: Deploy gandw.io
+
+# Push to main -> rebuild -> validate -> publish to S3 behind CloudFront.
+# A broken site can't go live: the build must match what's committed and check.py must pass.
+# Auth is GitHub OIDC into the gandw-site-deploy role (no AWS keys anywhere). That role can
+# write anything in the bucket EXCEPT versus/, which belongs to the VERSUS repo.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-site-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: us-east-1
+  BUCKET: gandw-io-site-584453982080
+  DISTRIBUTION_ID: E1ZG4YKGXF4XLH
+  DEPLOY_ROLE: arn:aws:iam::584453982080:role/gandw-site-deploy
+
+jobs:
+  build:
+    name: Build and validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Rebuild from build.py
+        run: python build.py
+
+      - name: Generated HTML matches the commit
+        # Page copy lives in build.py. If someone edited an index.html by hand, or forgot to
+        # run build.py before committing, the published site would silently drift from source.
+        run: |
+          if ! git diff --quiet; then
+            git --no-pager diff --stat
+            echo "::error::build.py output differs from the committed HTML. Run 'python build.py' and commit the result."
+            exit 1
+          fi
+
+      - name: Validate (check.py against serve.py)
+        run: |
+          python serve.py --port 8000 > /tmp/serve.log 2>&1 &
+          for i in $(seq 1 20); do curl -fs http://127.0.0.1:8000/ > /dev/null && break; sleep 0.5; done
+          python check.py --url http://127.0.0.1:8000
+
+  deploy:
+    name: Publish
+    needs: [build]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://gandw.io/
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assume the deploy role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.DEPLOY_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: gandw-site-${{ github.run_id }}
+
+      - name: Sync to S3
+        run: |
+          set -euo pipefail
+          # aws s3 sync doesn't read .deployignore, so turn it into --exclude flags.
+          mapfile -t EXCLUDES < <(grep -vE '^\s*(#|$)' .deployignore | while read -r p; do
+            case "$p" in
+              */) echo "--exclude"; echo "${p}*"; echo "--exclude"; echo "*/${p}*" ;;
+              *)  echo "--exclude"; echo "$p"; echo "--exclude"; echo "*/$p" ;;
+            esac
+          done)
+          # versus/ is the game, published by its own repo. Never touch it from here
+          # (the role is denied anyway; this keeps --delete from even trying).
+          aws s3 sync . "s3://${BUCKET}" --delete \
+            --exclude "versus/*" --exclude ".git/*" --exclude ".github/*" "${EXCLUDES[@]}" \
+            --cache-control "public, max-age=300"
+
+      - name: Invalidate CloudFront
+        run: |
+          set -euo pipefail
+          ID=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" \
+                 --paths "/*" --query 'Invalidation.Id' --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION_ID" --id "$ID" \
+            || echo "::warning::Invalidation still running; it will finish on its own"
+
+      - name: Verify the live site
+        run: |
+          set -euo pipefail
+          for path in / /games/ /versus/; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "https://gandw.io${path}")
+            echo "${path} -> ${code}"
+            [ "$code" = "200" ] || { echo "::error::https://gandw.io${path} returned ${code}"; exit 1; }
+          done
+          code=$(curl -s -o /dev/null -w '%{http_code}' "https://gandw.io/no-such-page/")
+          [ "$code" = "404" ] || { echo "::error::missing page returned ${code}, expected 404"; exit 1; }
