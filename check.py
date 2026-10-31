@@ -122,7 +122,9 @@ def main():
     if status is None:
         sys.exit(f"Can't reach {base} — is serve.py running?")
 
-    seen, queue = set(), ["/"]
+    # Signed-in pages aren't linked from public pages, so seed them explicitly.
+    seen, queue = set(), ["/", "/account/verify/", "/commissions/req/", "/admin/"]
+    private = {"/account/verify/", "/commissions/req/", "/admin/"}
     problems = defaultdict(list)
     titles = defaultdict(list)
     pages = assets_ok = 0
@@ -163,6 +165,9 @@ def main():
             problems[path].append(f"meta description {len(p.desc)} chars (>160 truncates)")
         if len(p.h1s) != 1:
             problems[path].append(f"{len(p.h1s)} <h1> elements (want exactly 1)")
+        noindex = '<meta name="robots" content="noindex">' in body
+        if path in private and not noindex:
+            problems[path].append("signed-in page without noindex")
         if p.imgs_no_alt:
             problems[path].append(f"{p.imgs_no_alt} <img> without alt")
         if p.canonical:

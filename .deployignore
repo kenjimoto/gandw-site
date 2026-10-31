@@ -10,3 +10,6 @@ __pycache__/
 # Superseded edition: ISBN placeholder + old domain. Never publish.
 assets/downloads/Oon_Publication_v2.pdf
 .gitignore
+# account API source: deployed to Lambda by api/deploy.sh, never to S3
+api/
+.local-api.json

@@ -525,3 +525,162 @@ blockquote {
 @media (min-width: 46rem) {
   .shot-grid--one { grid-template-columns: 1fr; }
 }
+
+/* ==========================================================================
+   Accounts, commissions, admin — forms and panels for the signed-in pages.
+   Same two weathers: brass for actions, verdigris for state.
+   ========================================================================== */
+
+[hidden] { display: none !important; }
+
+.hero--slim { padding-block: clamp(2.5rem, 6vw, 4rem) clamp(1.5rem, 4vw, 2.5rem); }
+.hero--slim .hero__title { font-size: clamp(2rem, 1.4rem + 2.6vw, 3.25rem); }
+
+.acct { max-width: 44rem; }
+
+.panel {
+  margin-top: 1.25rem;
+  padding: clamp(1.1rem, 3vw, 1.6rem);
+  background: var(--ink-800);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+}
+.panel:first-child { margin-top: 0; }
+.panel__title { font-size: 1.35rem; margin: 0 0 0.75rem; }
+.panel__name { font-size: 1.9rem; margin: 0.15rem 0 0.35rem; overflow-wrap: anywhere; }
+.panel__dek { color: var(--muted); font-size: 0.95rem; line-height: 1.55; margin: 0.5rem 0 0; }
+.panel__row { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: flex-start; }
+
+/* ---------------------------------------------------------------- forms */
+.form { display: grid; gap: 1rem; }
+.field { display: grid; gap: 0.4rem; font-size: 0.85rem; font-weight: 600; color: var(--paper); letter-spacing: 0.01em; }
+.field__hint { font-weight: 400; color: var(--faint); font-size: 0.8rem; line-height: 1.45; }
+.field-row { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
+.field--inline { grid-auto-flow: column; align-items: center; justify-content: start; gap: 0.6rem; }
+
+.field input, .field textarea, .field select {
+  width: 100%;
+  font: inherit;
+  font-weight: 400;
+  font-size: 1rem;
+  color: var(--paper);
+  background: var(--ink-900);
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  padding: 0.65rem 0.75rem;
+}
+.field textarea { resize: vertical; min-height: 5rem; line-height: 1.5; }
+.field input:focus, .field textarea:focus, .tabs button:focus-visible,
+.btn:focus-visible, .linkbtn:focus-visible, .check input:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+}
+.field input:user-invalid, .field textarea:user-invalid { border-color: #C46A5A; }
+
+.check { display: flex; gap: 0.6rem; align-items: flex-start; font-size: 0.95rem; color: var(--paper); cursor: pointer; }
+.check input { margin-top: 0.2rem; width: 1.05rem; height: 1.05rem; accent-color: var(--brass); flex: none; }
+
+.form__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-top: 0.25rem; }
+
+/* honeypot: present for bots, invisible and unreachable for people */
+.hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+button.btn { cursor: pointer; }
+button.btn:disabled { opacity: 0.55; cursor: progress; }
+.btn--sm { padding: 0.45rem 0.9rem; font-size: 0.8rem; }
+.btn--danger, .btn--ghost.btn--danger { background: #8E3B2E; border-color: #C46A5A; color: var(--paper); }
+.btn--danger:hover { background: #A84A3B; color: var(--paper); }
+
+.linkbtn {
+  background: none; border: 0; padding: 0;
+  font: inherit; font-size: 0.9rem;
+  color: var(--brass); text-decoration: underline; text-underline-offset: 0.18em;
+  cursor: pointer;
+}
+.linkbtn:hover { color: var(--paper); }
+
+/* ---------------------------------------------------------------- messages */
+.msg { margin: 0.75rem 0 0; font-size: 0.93rem; line-height: 1.5; padding: 0.7rem 0.9rem;
+       border-left: 2px solid var(--rule-strong); background: var(--ink-800); color: var(--muted); }
+.msg--info { border-left-color: var(--verdigris-dim); }
+.msg--ok   { border-left-color: var(--verdigris); color: var(--paper); }
+.msg--err  { border-left-color: #C46A5A; color: #F0C9C0; }
+.notice--brass { border-left-color: var(--brass); }
+.notice p + p { margin-top: 0.5rem; }
+
+/* ---------------------------------------------------------------- tabs */
+.tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--rule); margin: 1.5rem 0 0; flex-wrap: wrap; }
+.tabs button {
+  background: none; border: 0; border-bottom: 2px solid transparent;
+  padding: 0.7rem 1rem; margin-bottom: -1px;
+  font: inherit; font-size: 0.9rem; font-weight: 600; color: var(--muted); cursor: pointer;
+}
+.tabs button[aria-selected="true"] { color: var(--paper); border-bottom-color: var(--brass); }
+.tabs button:hover { color: var(--paper); }
+.tabs + .panel, .tabs + form, .tabs + div { margin-top: 1.25rem; }
+
+/* ---------------------------------------------------------------- pills */
+.pillrow { display: inline-flex; flex-wrap: wrap; gap: 0.35rem; vertical-align: middle; }
+.pill {
+  display: inline-block;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.18rem 0.5rem; border-radius: 2px; border: 1px solid currentColor;
+  color: var(--muted); white-space: nowrap;
+}
+.pill--open, .pill--artist { color: var(--verdigris); }
+.pill--earmarked, .pill--admin { color: var(--brass); }
+.pill--done { color: var(--paper); }
+.pill--closed, .pill--player { color: var(--faint); }
+
+/* ---------------------------------------------------------------- account: games */
+.gamelist { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.6rem; }
+.gamerow { display: grid; gap: 0.15rem 1rem; grid-template-columns: 1fr auto; padding: 0.75rem 0; border-top: 1px solid var(--rule); }
+.gamerow:first-child { border-top: 0; }
+.gamerow__name { font-family: var(--serif); font-size: 1.15rem; font-weight: 600; }
+.gamerow__meta { grid-column: 1; color: var(--muted); font-size: 0.9rem; }
+.gamerow__when { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--faint); font-size: 0.8rem; text-align: right; }
+
+details.danger summary { cursor: pointer; font-weight: 600; color: #F0C9C0; }
+details.danger[open] summary { margin-bottom: 1rem; }
+
+/* ---------------------------------------------------------------- commissions */
+.split { display: grid; gap: clamp(2rem, 5vw, 4rem); }
+@media (min-width: 56rem) { .split { grid-template-columns: 1fr 1fr; align-items: start; } }
+.steps { padding-left: 1.25rem; display: grid; gap: 0.6rem; color: var(--muted); }
+.steps strong { color: var(--paper); }
+
+.tracker__head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1rem; }
+.tracker__head h2 { margin: 0.2rem 0 0; }
+.tracker__held { color: var(--muted); font-size: 0.9rem; }
+.tracker__held strong { color: var(--brass); }
+
+.reqlist { list-style: none; padding: 0; margin: 1.5rem 0 0; display: grid; gap: 1rem;
+           grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); }
+.req { border-top: 2px solid var(--verdigris-dim); }
+.req--mine { border-top-color: var(--brass); }
+.req__head { display: flex; justify-content: space-between; gap: 0.75rem; align-items: flex-start; }
+.req__head .card__title { margin: 0; }
+.req__head .card__title a { color: var(--paper); text-decoration: none; }
+.req__head .card__title a:hover { color: var(--brass); }
+.req__more { margin-top: auto; font-size: 0.9rem; font-weight: 600; }
+
+.reqfacts { display: grid; grid-template-columns: auto 1fr; gap: 0.2rem 0.9rem; margin: 0; font-size: 0.88rem; }
+.reqfacts dt { color: var(--faint); }
+.reqfacts dd { margin: 0; color: var(--paper); }
+
+.brief { display: grid; gap: 2rem; }
+@media (min-width: 52rem) { .brief { grid-template-columns: 15rem 1fr; } }
+.brief__side { display: grid; gap: 1rem; align-content: start; }
+#q-desc p + p { margin-top: 1em; }
+
+/* ---------------------------------------------------------------- admin */
+.adminlist { list-style: none; padding: 0; margin: 1rem 0 0; }
+.adminrow { display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; justify-content: space-between; align-items: center;
+            padding: 0.9rem 0; border-top: 1px solid var(--rule); }
+.adminrow__main { display: flex; flex-wrap: wrap; gap: 0.4rem 0.6rem; align-items: center; min-width: 0; }
+.adminrow__main strong { overflow-wrap: anywhere; }
+.adminrow__meta { flex-basis: 100%; color: var(--faint); font-size: 0.82rem; }
+.row-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.listbar { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; margin-top: 1.5rem; }
+.listbar .panel__dek { margin: 0; }
+.temp { font-family: var(--mono); font-size: 1.2rem; color: var(--brass); letter-spacing: 0.04em; user-select: all; }

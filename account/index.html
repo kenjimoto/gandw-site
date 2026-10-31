@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your account · Goggles &amp; Windchimes</title>
+<meta name="description" content="One Goggles &amp; Windchimes account for cloud saves in every game. A username and a password; nothing else required.">
+<link rel="canonical" href="https://gandw.io/account/">
+<meta property="og:site_name" content="Goggles &amp; Windchimes">
+<meta property="og:title" content="Your account · Goggles &amp; Windchimes">
+<meta property="og:description" content="One Goggles &amp; Windchimes account for cloud saves in every game. A username and a password; nothing else required.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gandw.io/account/">
+<meta property="og:image" content="https://gandw.io/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Goggles &amp; Windchimes">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gandw.io/assets/og.png">
+<meta name="theme-color" content="#090E15">
+<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="masthead">
+  <div class="wrap masthead__inner">
+    <a class="logo" href="/"><svg class="logo__mark" width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+  <circle cx="8.5" cy="9" r="5.2" stroke="#D9A441" stroke-width="1.5"/>
+  <path d="M13.7 9h2.2" stroke="#D9A441" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M17.5 4.5v8M21 4.5v12M24 4.5v6" stroke="#6FAE9C" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M16.6 4.5h8.2" stroke="#6FAE9C" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="8.5" cy="9" r="1.6" fill="#D9A441"/>
+</svg><span>Goggles <span class="logo__amp">&amp;</span> Windchimes</span></a>
+    <nav class="nav" aria-label="Primary">
+        <a href="/games/">Games</a>
+        <a href="/tabletop/">Tabletop</a>
+        <a href="/vale/">The Vale Universe</a>
+        <a href="/press/">Press</a>
+        <a href="/about/">About</a>
+        <a href="/account/" aria-current="page">Account</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="hero hero--slim">
+  <div class="wrap">
+    <p class="eyebrow">One account, every game</p>
+    <h1 class="hero__title">Your account</h1>
+    <p class="lede hero__lede">
+      A Goggles &amp; Windchimes account keeps your game saves in the cloud, and lets approved
+      artists into the commissions tracker. It needs a username and a password. That's all.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap acct">
+    <noscript><p class="notice">Accounts need JavaScript turned on.</p></noscript>
+    <p id="acct-loading" class="msg msg--info">Checking whether you're signed in&hellip;</p>
+    <p id="acct-error" class="msg" hidden></p>
+
+    <div id="acct-out" hidden>
+      <p id="out-msg" class="msg" hidden></p>
+      <div class="tabs" role="tablist" aria-label="Sign in or create an account">
+        <button type="button" role="tab" id="tab-login" aria-selected="true">Sign in</button>
+        <button type="button" role="tab" id="tab-register" aria-selected="false">Create an account</button>
+      </div>
+
+      <form id="f-login" class="panel form" autocomplete="on">
+        <label class="field">Username
+          <input name="username" autocomplete="username" required maxlength="20" autocapitalize="off" spellcheck="false">
+        </label>
+        <label class="field">Password
+          <input name="password" type="password" autocomplete="current-password" required maxlength="128">
+        </label>
+        <div class="form__actions">
+          <button class="btn" type="submit">Sign in</button>
+          <button class="linkbtn" type="button" id="show-help">Forgot your password?</button>
+        </div>
+        <p id="login-msg" class="msg" hidden></p>
+      </form>
+
+      <form id="f-register" class="panel form" hidden autocomplete="on">
+        <label class="field">Username
+          <input name="username" autocomplete="username" required minlength="3" maxlength="20"
+                 pattern="[A-Za-z0-9][A-Za-z0-9_\-]{2,19}" autocapitalize="off" spellcheck="false">
+          <span class="field__hint">3&ndash;20 letters, numbers, - or _. Shown to other players, so don't use your real name.</span>
+        </label>
+        <label class="field">Password
+          <input name="password" type="password" autocomplete="new-password" required minlength="10" maxlength="128">
+          <span class="field__hint">At least 10 characters.</span>
+        </label>
+        <label class="field">Password again
+          <input name="password2" type="password" autocomplete="new-password" required minlength="10" maxlength="128">
+        </label>
+        <label class="check">
+          <input type="checkbox" name="updates" id="reg-updates">
+          <span>Email me about new games and updates (optional)</span>
+        </label>
+        <label class="field" id="reg-email-row" hidden>Email
+          <input name="email" id="reg-email" type="email" autocomplete="email" maxlength="254">
+          <span class="field__hint">Only kept while you're opted in. Untick at any time and it's deleted.</span>
+        </label>
+        <div class="hp" aria-hidden="true">
+        <label>Leave this empty <input name="website" tabindex="-1" autocomplete="off"></label>
+      </div>
+        <div class="form__actions">
+          <button class="btn" type="submit">Create account</button>
+        </div>
+        <p id="reg-msg" class="msg" hidden></p>
+      </form>
+
+      <form id="f-help" class="panel form" hidden>
+        <h2 class="panel__title">Forgot your password?</h2>
+        <p class="panel__dek">We don't keep email addresses unless you opted in to updates, so password resets
+          are done by hand. Tell us your username and where to reply, and we'll send you a temporary
+          password.</p>
+        <label class="field">Username
+          <input name="username" id="help-username" required maxlength="20" autocapitalize="off" spellcheck="false">
+        </label>
+        <label class="field">Email to reply to
+          <input name="email" type="email" autocomplete="email" required maxlength="254">
+          <span class="field__hint">This goes straight to our inbox. The site doesn't store it.</span>
+        </label>
+        <label class="field">Anything else? (optional)
+          <textarea name="note" rows="3" maxlength="2000"></textarea>
+        </label>
+        <div class="hp" aria-hidden="true">
+        <label>Leave this empty <input name="website" tabindex="-1" autocomplete="off"></label>
+      </div>
+        <div class="form__actions">
+          <button class="btn" type="submit">Send</button>
+          <button class="linkbtn" type="button" id="hide-help">Back to sign in</button>
+        </div>
+        <p id="help-msg" class="msg" hidden></p>
+      </form>
+    </div>
+
+    <div id="acct-in" hidden>
+      <p id="in-msg" class="msg" hidden></p>
+      <p id="must-change" class="notice notice--brass" hidden>
+        <strong>You're using a temporary password.</strong> Set your own below before you go on.
+      </p>
+
+      <div class="panel">
+        <div class="panel__row">
+          <div>
+            <p class="eyebrow">Signed in as</p>
+            <h2 class="panel__name" id="me-name">&nbsp;</h2>
+            <p class="panel__dek">Member since <span id="me-since"></span> <span id="me-roles" class="pillrow"></span></p>
+          </div>
+          <div class="row-actions">
+            <span id="me-links" class="row-actions"></span>
+            <button type="button" class="btn btn--ghost btn--sm" id="sign-out">Sign out</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel__title">Your games</h2>
+        <ul id="games" class="gamelist"></ul>
+        <p id="games-empty" class="panel__dek" hidden>
+          No cloud saves yet. Open <a href="/versus/">VERSUS</a> while signed in and your House
+          is saved here automatically.
+        </p>
+      </div>
+
+      <form id="f-updates" class="panel form">
+        <h2 class="panel__title">Update emails</h2>
+        <label class="check">
+          <input type="checkbox" name="updates" id="up-on">
+          <span>Email me about new games and updates</span>
+        </label>
+        <label class="field" id="up-email-row" hidden>Email
+          <input name="email" id="up-email" type="email" autocomplete="email" maxlength="254">
+          <span class="field__hint">Leave blank to keep the address you already gave.</span>
+        </label>
+        <p id="up-status" class="msg" hidden></p>
+        <div class="form__actions">
+          <button class="btn btn--sm" type="submit">Save</button>
+          <button class="linkbtn" type="button" id="up-resend" hidden>Resend confirmation email</button>
+        </div>
+        <p id="up-msg" class="msg" hidden></p>
+      </form>
+
+      <form id="f-pass" class="panel form">
+        <h2 class="panel__title">Change password</h2>
+        <label class="field">Current password
+          <input name="current" type="password" autocomplete="current-password" required maxlength="128">
+        </label>
+        <label class="field">New password
+          <input name="new" type="password" autocomplete="new-password" required minlength="10" maxlength="128">
+        </label>
+        <label class="field">New password again
+          <input name="new2" type="password" autocomplete="new-password" required minlength="10" maxlength="128">
+        </label>
+        <div class="form__actions"><button class="btn btn--sm" type="submit">Change password</button></div>
+        <p id="pass-msg" class="msg" hidden></p>
+      </form>
+
+      <details class="panel danger">
+        <summary>Delete your account</summary>
+        <form id="f-delete" class="form">
+          <p class="panel__dek">This deletes your account, every cloud save, and your email address if you gave
+            one. Any commission reqs you hold go back on the open list. It can't be undone.</p>
+          <label class="field">Password
+            <input name="password" type="password" autocomplete="current-password" required maxlength="128">
+          </label>
+          <label class="check"><input type="checkbox" name="sure"> <span>Yes, delete everything</span></label>
+          <div class="form__actions"><button class="btn btn--danger btn--sm" type="submit">Delete my account</button></div>
+          <p id="del-msg" class="msg" hidden></p>
+        </form>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="prose">
+      <p class="eyebrow">Privacy</p>
+      <h2>What an account stores</h2>
+      <ul class="ticks">
+        <li>Your username, and a salted, one-way hash of your password. Nobody can read your password back, including us.</li>
+        <li>Which roles you have (player, artist, admin), when you joined and when you last signed in.</li>
+        <li>Your game saves, for as long as you keep them.</li>
+        <li>Your email address <em>only</em> if you tick the updates box. Untick it and it's deleted, not archived.</li>
+      </ul>
+      <p>No real names, no IP addresses, no tracking. Signing in sets one cookie, which only keeps
+        you signed in and is only ever sent to this site's account service. Delete your account
+        and all of it goes.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__grid">
+          <div>
+            <h2>Games</h2>
+            <ul>
+              <li><a href="/games/versus/">VERSUS</a></li>
+              <li><a href="/games/abyssfall/">AbyssFall</a></li>
+              <li><a href="/games/oon/">Oon</a></li>
+              <li><a href="/games/concord/">Concord</a></li>
+              <li><a href="/games/mcguffins/">Miniatures &amp; McGuffins</a></li>
+              <li><a href="/games/archive/">Archive</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Tabletop</h2>
+            <ul>
+              <li><a href="/tabletop/avb/">A Vale Beyond</a></li>
+              <li><a href="/tabletop/yarr/">The Yarr System</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>The World</h2>
+            <ul>
+              <li><a href="/vale/">The Vale Universe</a></li>
+              <li><a href="/vale/#atlas">Maps &amp; Atlas</a></li>
+              <li><a href="/vale/#script">The Valesian Script</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Imprint</h2>
+            <ul>
+              <li><a href="/about/">About</a></li>
+              <li><a href="/commissions/">Artist commissions</a></li>
+              <li><a href="/press/">Press Kit</a></li>
+              <li><a href="/credits/">Credits &amp; Licences</a></li>
+            </ul>
+          </div>
+    </div>
+    <div class="foot__legal">
+      <span>&copy; 2026 Goggles &amp; Windchimes. All rights reserved.</span>
+      <span>Vale, AnimaPlanet, Yarr, AbyssFall, Oon and VERSUS are marks of Goggles &amp; Windchimes.</span>
+    </div>
+  </div>
+</footer>
+<script src="/assets/js/gw.js" defer></script>
+<script src="/assets/js/account.js" defer></script>
+</body>
+</html>
