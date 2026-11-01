@@ -1055,6 +1055,7 @@ press = """
       <li><div class="facts__k">Founded</div><div class="facts__v">2025</div></li>
       <li><div class="facts__k">Founder</div><div class="facts__v">Ken Bewley</div></li>
       <li><div class="facts__k">Based</div><div class="facts__v">California, USA</div></li>
+      <li><div class="facts__k">Contact</div><div class="facts__v"><a href="mailto:ninja-note@gandw.io">ninja-note@gandw.io</a></div></li>
     </ul>
   </div>
 </section>
