@@ -130,3 +130,29 @@ python serve.py --port 8080
 
 It binds to `127.0.0.1` only, so nothing on your network can reach it. To demo from a
 phone on the same wifi, `--host 0.0.0.0` — then stop it again afterwards.
+
+---
+
+## Accounts, commissions and cloud saves (`--api`)
+
+`/account/`, `/commissions/` and `/admin/` are static pages that talk to the account API
+at `/api/`. In production that's a Lambda behind CloudFront. Locally, `serve.py` runs the
+**same code** (`api/app.py`) against a JSON file instead of DynamoDB:
+
+```
+python serve.py --api --seed
+python serve.py --api --seed --versus "D:/Projects/03_Game_Dev/versus"   # with VERSUS cloud save
+```
+
+- `--seed` creates admin **ken / local-admin-pw** and three sample reqs, once.
+- Data lives in `.local-api.json` (git-ignored). Delete it, with the server stopped, to start over.
+- Emails aren't sent. They're printed in the server window, so you can click a
+  confirmation link or read an access request.
+- Locally the session cookie isn't `Secure`, because there's no https. In production it is.
+- `--versus` serves `dist/index.html` if it exists, so run `npm run build` in VERSUS after
+  editing `versus.html`, or delete `dist/`.
+
+Without `--api`, those pages load but say the account service isn't available. That's
+correct, and it's what CI checks.
+
+API tests (stdlib, about a second): `python -m unittest discover -s api`

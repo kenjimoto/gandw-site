@@ -61,6 +61,25 @@ assets/
 from the VERSUS repo by its own GitHub Actions pipeline into the same S3 bucket under the
 `versus/` key prefix. A local preview will 404 on `/versus/` — that is correct.
 
+## Accounts API (`api/`)
+
+`api/` is the code behind `https://gandw.io/api/`: shared Goggles & Windchimes accounts,
+cloud saves for web games (VERSUS first), and the artist-commissions tracker. It runs as the
+`gandw-api` Lambda (infra: `gandw-api.yaml` in the project folder) and locally inside
+`serve.py --api`. It's never uploaded to S3 (`.deployignore`).
+
+| File | |
+|---|---|
+| `app.py` | Routes, auth, saves, commissions, admin. Read its docstring first. |
+| `store.py` | DynamoDB store and the in-memory/JSON store used locally and in tests |
+| `mailer.py` | SES, or a local outbox that prints |
+| `test_app.py` | `python -m unittest discover -s api` (CI runs this) |
+| `deploy.sh` | Publish the code to the Lambda and smoke-test it |
+| `make_admin.py` | Create or reset an admin straight in the table |
+
+The site pages are `/account/`, `/commissions/`, `/commissions/req/` and `/admin/`. Their
+scripts are in `assets/js/` (`gw.js` is the shared client that games load too).
+
 ## Design system
 
 Two accents, one for each half of the name:

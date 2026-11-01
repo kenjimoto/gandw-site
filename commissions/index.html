@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Artist commissions · Goggles &amp; Windchimes</title>
+<meta name="description" content="Open illustration and game-art commissions from Goggles &amp; Windchimes, and how artists get access.">
+<link rel="canonical" href="https://gandw.io/commissions/">
+<meta property="og:site_name" content="Goggles &amp; Windchimes">
+<meta property="og:title" content="Artist commissions · Goggles &amp; Windchimes">
+<meta property="og:description" content="Open illustration and game-art commissions from Goggles &amp; Windchimes, and how artists get access.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gandw.io/commissions/">
+<meta property="og:image" content="https://gandw.io/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Goggles &amp; Windchimes">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gandw.io/assets/og.png">
+<meta name="theme-color" content="#090E15">
+<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="masthead">
+  <div class="wrap masthead__inner">
+    <a class="logo" href="/"><svg class="logo__mark" width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+  <circle cx="8.5" cy="9" r="5.2" stroke="#D9A441" stroke-width="1.5"/>
+  <path d="M13.7 9h2.2" stroke="#D9A441" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M17.5 4.5v8M21 4.5v12M24 4.5v6" stroke="#6FAE9C" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M16.6 4.5h8.2" stroke="#6FAE9C" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="8.5" cy="9" r="1.6" fill="#D9A441"/>
+</svg><span>Goggles <span class="logo__amp">&amp;</span> Windchimes</span></a>
+    <nav class="nav" aria-label="Primary">
+        <a href="/games/">Games</a>
+        <a href="/tabletop/">Tabletop</a>
+        <a href="/vale/">The Vale Universe</a>
+        <a href="/press/">Press</a>
+        <a href="/about/">About</a>
+        <a href="/account/">Account</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow eyebrow--brass">Work with us</p>
+    <h1 class="hero__title">Artist commissions</h1>
+    <p class="lede hero__lede">
+      Goggles &amp; Windchimes commissions illustration, maps and game art from independent
+      artists. Approved artists can see the open requisitions here and earmark one to take on.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <noscript><p class="notice">The tracker needs JavaScript turned on. The request form below does too.</p></noscript>
+    <p id="c-loading" class="msg msg--info">Checking whether you're signed in&hellip;</p>
+    <p id="c-state" class="msg" hidden></p>
+
+    <div id="c-signedout" class="panel" hidden>
+      <h2 class="panel__title">Already on the artist list?</h2>
+      <p class="panel__dek">Sign in to see the open reqs.</p>
+      <div class="form__actions"><a class="btn" href="/account/?next=/commissions/">Sign in</a></div>
+    </div>
+
+    <div id="c-notyet" class="panel" hidden>
+      <h2 class="panel__title">You're signed in as <span id="c-who"></span></h2>
+      <p class="panel__dek">That account isn't on the artist list yet. Send the form below with this
+        username and we'll add you.</p>
+    </div>
+
+    <div id="tracker" hidden>
+      <div class="tracker__head">
+        <div>
+          <p class="eyebrow">Signed in as <span id="t-who"></span></p>
+          <h2>Open requisitions</h2>
+        </div>
+        <p class="tracker__held">You're holding <strong id="t-held">0</strong></p>
+      </div>
+      <p id="t-msg" class="msg" hidden></p>
+      <ul id="reqs" class="reqlist"></ul>
+      <p id="reqs-empty" class="panel__dek" hidden>Nothing open right now. Check back soon.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="split">
+      <div class="prose">
+        <p class="eyebrow">How it works</p>
+        <h2>Getting on the list</h2>
+        <ol class="steps">
+          <li><a href="/account/#create">Create a free account</a>. A username and password are all it takes.</li>
+          <li>Send the form with that username and an email address we can reply to.</li>
+          <li>We'll add your account to the artist list and let you know.</li>
+          <li>Sign in, read a brief, and press <strong>Earmark</strong> to claim it. Each req goes to
+            one artist. If you can't do it after all, release it and it goes back on the list.</li>
+        </ol>
+        <p class="fineprint">The site never stores your email address. It travels inside the message to our
+          inbox, so we can reply, and nowhere else.</p>
+      </div>
+
+      <form id="f-access" class="panel form">
+        <h2 class="panel__title">Request artist access</h2>
+        <label class="field">Your G&amp;W username
+          <input name="username" id="acc-username" required maxlength="20" autocapitalize="off" spellcheck="false">
+        </label>
+        <label class="field">Email to reply to
+          <input name="email" type="email" autocomplete="email" required maxlength="254">
+        </label>
+        <label class="field">About you (optional)
+          <textarea name="note" rows="4" maxlength="2000" placeholder="A link to your portfolio, what you like to draw"></textarea>
+        </label>
+        <div class="hp" aria-hidden="true">
+        <label>Leave this empty <input name="website" tabindex="-1" autocomplete="off"></label>
+      </div>
+        <div class="form__actions"><button class="btn" type="submit">Send request</button></div>
+        <p id="acc-msg" class="msg" hidden></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__grid">
+          <div>
+            <h2>Games</h2>
+            <ul>
+              <li><a href="/games/versus/">VERSUS</a></li>
+              <li><a href="/games/abyssfall/">AbyssFall</a></li>
+              <li><a href="/games/oon/">Oon</a></li>
+              <li><a href="/games/concord/">Concord</a></li>
+              <li><a href="/games/mcguffins/">Miniatures &amp; McGuffins</a></li>
+              <li><a href="/games/archive/">Archive</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Tabletop</h2>
+            <ul>
+              <li><a href="/tabletop/avb/">A Vale Beyond</a></li>
+              <li><a href="/tabletop/yarr/">The Yarr System</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>The World</h2>
+            <ul>
+              <li><a href="/vale/">The Vale Universe</a></li>
+              <li><a href="/vale/#atlas">Maps &amp; Atlas</a></li>
+              <li><a href="/vale/#script">The Valesian Script</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2>Imprint</h2>
+            <ul>
+              <li><a href="/about/">About</a></li>
+              <li><a href="/commissions/">Artist commissions</a></li>
+              <li><a href="/press/">Press Kit</a></li>
+              <li><a href="/credits/">Credits &amp; Licences</a></li>
+            </ul>
+          </div>
+    </div>
+    <div class="foot__legal">
+      <span>&copy; 2026 Goggles &amp; Windchimes. All rights reserved.</span>
+      <span>Vale, AnimaPlanet, Yarr, AbyssFall, Oon and VERSUS are marks of Goggles &amp; Windchimes.</span>
+    </div>
+  </div>
+</footer>
+<script src="/assets/js/gw.js" defer></script>
+<script src="/assets/js/commissions.js" defer></script>
+</body>
+</html>

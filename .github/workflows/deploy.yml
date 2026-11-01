@@ -35,6 +35,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Account API tests
+        run: python -m unittest discover -s api -v
+
       - name: Rebuild from build.py
         run: python build.py
 

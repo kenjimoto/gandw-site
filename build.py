@@ -22,6 +22,7 @@ NAV = [
     ("The Vale Universe", "/vale/"),
     ("Press", "/press/"),
     ("About", "/about/"),
+    ("Account", "/account/"),
 ]
 
 FOOTER = [
@@ -44,6 +45,7 @@ FOOTER = [
     ]),
     ("Imprint", [
         ("About", "/about/"),
+        ("Artist commissions", "/commissions/"),
         ("Press Kit", "/press/"),
         ("Credits & Licences", "/credits/"),
     ]),
@@ -59,7 +61,7 @@ MARK = """<svg class="logo__mark" width="26" height="26" viewBox="0 0 26 26" fil
 </svg>"""
 
 
-def shell(*, title, desc, path, body, page_class="", og=None, css=(), scripts=()):
+def shell(*, title, desc, path, body, page_class="", og=None, css=(), scripts=(), noindex=False):
     """Wrap page body in the site chrome."""
     nav = "\n".join(
         '        <a href="{href}"{cur}>{label}</a>'.format(
@@ -101,7 +103,7 @@ def shell(*, title, desc, path, body, page_class="", og=None, css=(), scripts=()
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(full_title)}</title>
 <meta name="description" content="{html.escape(desc)}">
-<link rel="canonical" href="https://{DOMAIN}{path}">
+<link rel="canonical" href="https://{DOMAIN}{path}">{'\n<meta name="robots" content="noindex">' if noindex else ''}
 <meta property="og:site_name" content="{html.escape(SITE)}">
 <meta property="og:title" content="{html.escape(full_title)}">
 <meta property="og:description" content="{html.escape(desc)}">
@@ -159,6 +161,11 @@ OG = {
 
 # Per-page extra stylesheets and scripts. Everything is self-hosted: the site CSP is 'self'.
 EXTRAS = {
+    "/account/":          {"scripts": ["/assets/js/gw.js", "/assets/js/account.js"]},
+    "/account/verify/":   {"scripts": ["/assets/js/gw.js", "/assets/js/verify.js"]},
+    "/commissions/":      {"scripts": ["/assets/js/gw.js", "/assets/js/commissions.js"]},
+    "/commissions/req/":  {"scripts": ["/assets/js/gw.js", "/assets/js/commissions.js"]},
+    "/admin/":            {"scripts": ["/assets/js/gw.js", "/assets/js/admin.js"]},
     "/vale/atlas/": {
         "css": ["/assets/vale/globe.css"],
         "scripts": ["/assets/vale/three.min.js", "/assets/vale/OrbitControls.js",
@@ -1048,6 +1055,7 @@ press = """
       <li><div class="facts__k">Founded</div><div class="facts__v">2025</div></li>
       <li><div class="facts__k">Founder</div><div class="facts__v">Ken Bewley</div></li>
       <li><div class="facts__k">Based</div><div class="facts__v">California, USA</div></li>
+      <li><div class="facts__k">Contact</div><div class="facts__v"><a href="mailto:ninja-note@gandw.io">ninja-note@gandw.io</a></div></li>
     </ul>
   </div>
 </section>
@@ -1302,8 +1310,445 @@ credits = """
       <h2>No third parties</h2>
       <p class="dek">
         This website loads no external fonts, scripts, analytics or trackers. Everything it
-        needs is served from this domain. There are no cookies.
+        needs is served from this domain. The only cookie is the one that keeps you signed in
+        to your <a href="/account/">account</a>, and it's set only when you sign in.
       </p>
+    </div>
+  </div>
+</section>
+"""
+
+# ===========================================================================
+# Accounts, commissions, admin  (dynamic pages: static shells + /assets/js, data from /api)
+# ===========================================================================
+
+HONEYPOT = """<div class="hp" aria-hidden="true">
+        <label>Leave this empty <input name="website" tabindex="-1" autocomplete="off"></label>
+      </div>"""
+
+account = f"""
+<section class="hero hero--slim">
+  <div class="wrap">
+    <p class="eyebrow">One account, every game</p>
+    <h1 class="hero__title">Your account</h1>
+    <p class="lede hero__lede">
+      A Goggles &amp; Windchimes account keeps your game saves in the cloud, and lets approved
+      artists into the commissions tracker. It needs a username and a password. That's all.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap acct">
+    <noscript><p class="notice">Accounts need JavaScript turned on.</p></noscript>
+    <p id="acct-loading" class="msg msg--info">Checking whether you're signed in&hellip;</p>
+    <p id="acct-error" class="msg" hidden></p>
+
+    <div id="acct-out" hidden>
+      <p id="out-msg" class="msg" hidden></p>
+      <div class="tabs" role="tablist" aria-label="Sign in or create an account">
+        <button type="button" role="tab" id="tab-login" aria-selected="true">Sign in</button>
+        <button type="button" role="tab" id="tab-register" aria-selected="false">Create an account</button>
+      </div>
+
+      <form id="f-login" class="panel form" autocomplete="on">
+        <label class="field">Username
+          <input name="username" autocomplete="username" required maxlength="20" autocapitalize="off" spellcheck="false">
+        </label>
+        <label class="field">Password
+          <input name="password" type="password" autocomplete="current-password" required maxlength="128">
+        </label>
+        <div class="form__actions">
+          <button class="btn" type="submit">Sign in</button>
+          <button class="linkbtn" type="button" id="show-help">Forgot your password?</button>
+        </div>
+        <p id="login-msg" class="msg" hidden></p>
+      </form>
+
+      <form id="f-register" class="panel form" hidden autocomplete="on">
+        <label class="field">Username
+          <input name="username" autocomplete="username" required minlength="3" maxlength="20"
+                 pattern="[A-Za-z0-9][A-Za-z0-9_\\-]{{2,19}}" autocapitalize="off" spellcheck="false">
+          <span class="field__hint">3&ndash;20 letters, numbers, - or _. Shown to other players, so don't use your real name.</span>
+        </label>
+        <label class="field">Password
+          <input name="password" type="password" autocomplete="new-password" required minlength="10" maxlength="128">
+          <span class="field__hint">At least 10 characters.</span>
+        </label>
+        <label class="field">Password again
+          <input name="password2" type="password" autocomplete="new-password" required minlength="10" maxlength="128">
+        </label>
+        <label class="check">
+          <input type="checkbox" name="updates" id="reg-updates">
+          <span>Email me about new games and updates (optional)</span>
+        </label>
+        <label class="field" id="reg-email-row" hidden>Email
+          <input name="email" id="reg-email" type="email" autocomplete="email" maxlength="254">
+          <span class="field__hint">Only kept while you're opted in. Untick at any time and it's deleted.</span>
+        </label>
+        {HONEYPOT}
+        <div class="form__actions">
+          <button class="btn" type="submit">Create account</button>
+        </div>
+        <p id="reg-msg" class="msg" hidden></p>
+      </form>
+
+      <form id="f-help" class="panel form" hidden>
+        <h2 class="panel__title">Forgot your password?</h2>
+        <p class="panel__dek">We don't keep email addresses unless you opted in to updates, so password resets
+          are done by hand. Tell us your username and where to reply, and we'll send you a temporary
+          password.</p>
+        <label class="field">Username
+          <input name="username" id="help-username" required maxlength="20" autocapitalize="off" spellcheck="false">
+        </label>
+        <label class="field">Email to reply to
+          <input name="email" type="email" autocomplete="email" required maxlength="254">
+          <span class="field__hint">This goes straight to our inbox. The site doesn't store it.</span>
+        </label>
+        <label class="field">Anything else? (optional)
+          <textarea name="note" rows="3" maxlength="2000"></textarea>
+        </label>
+        {HONEYPOT}
+        <div class="form__actions">
+          <button class="btn" type="submit">Send</button>
+          <button class="linkbtn" type="button" id="hide-help">Back to sign in</button>
+        </div>
+        <p id="help-msg" class="msg" hidden></p>
+      </form>
+    </div>
+
+    <div id="acct-in" hidden>
+      <p id="in-msg" class="msg" hidden></p>
+      <p id="must-change" class="notice notice--brass" hidden>
+        <strong>You're using a temporary password.</strong> Set your own below before you go on.
+      </p>
+
+      <div class="panel">
+        <div class="panel__row">
+          <div>
+            <p class="eyebrow">Signed in as</p>
+            <h2 class="panel__name" id="me-name">&nbsp;</h2>
+            <p class="panel__dek">Member since <span id="me-since"></span> <span id="me-roles" class="pillrow"></span></p>
+          </div>
+          <div class="row-actions">
+            <span id="me-links" class="row-actions"></span>
+            <button type="button" class="btn btn--ghost btn--sm" id="sign-out">Sign out</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel__title">Your games</h2>
+        <ul id="games" class="gamelist"></ul>
+        <p id="games-empty" class="panel__dek" hidden>
+          No cloud saves yet. Open <a href="/versus/">VERSUS</a> while signed in and your House
+          is saved here automatically.
+        </p>
+      </div>
+
+      <form id="f-updates" class="panel form">
+        <h2 class="panel__title">Update emails</h2>
+        <label class="check">
+          <input type="checkbox" name="updates" id="up-on">
+          <span>Email me about new games and updates</span>
+        </label>
+        <label class="field" id="up-email-row" hidden>Email
+          <input name="email" id="up-email" type="email" autocomplete="email" maxlength="254">
+          <span class="field__hint">Leave blank to keep the address you already gave.</span>
+        </label>
+        <p id="up-status" class="msg" hidden></p>
+        <div class="form__actions">
+          <button class="btn btn--sm" type="submit">Save</button>
+          <button class="linkbtn" type="button" id="up-resend" hidden>Resend confirmation email</button>
+        </div>
+        <p id="up-msg" class="msg" hidden></p>
+      </form>
+
+      <form id="f-pass" class="panel form">
+        <h2 class="panel__title">Change password</h2>
+        <label class="field">Current password
+          <input name="current" type="password" autocomplete="current-password" required maxlength="128">
+        </label>
+        <label class="field">New password
+          <input name="new" type="password" autocomplete="new-password" required minlength="10" maxlength="128">
+        </label>
+        <label class="field">New password again
+          <input name="new2" type="password" autocomplete="new-password" required minlength="10" maxlength="128">
+        </label>
+        <div class="form__actions"><button class="btn btn--sm" type="submit">Change password</button></div>
+        <p id="pass-msg" class="msg" hidden></p>
+      </form>
+
+      <details class="panel danger">
+        <summary>Delete your account</summary>
+        <form id="f-delete" class="form">
+          <p class="panel__dek">This deletes your account, every cloud save, and your email address if you gave
+            one. Any commission reqs you hold go back on the open list. It can't be undone.</p>
+          <label class="field">Password
+            <input name="password" type="password" autocomplete="current-password" required maxlength="128">
+          </label>
+          <label class="check"><input type="checkbox" name="sure"> <span>Yes, delete everything</span></label>
+          <div class="form__actions"><button class="btn btn--danger btn--sm" type="submit">Delete my account</button></div>
+          <p id="del-msg" class="msg" hidden></p>
+        </form>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="prose">
+      <p class="eyebrow">Privacy</p>
+      <h2>What an account stores</h2>
+      <ul class="ticks">
+        <li>Your username, and a salted, one-way hash of your password. Nobody can read your password back, including us.</li>
+        <li>Which roles you have (player, artist, admin), when you joined and when you last signed in.</li>
+        <li>Your game saves, for as long as you keep them.</li>
+        <li>Your email address <em>only</em> if you tick the updates box. Untick it and it's deleted, not archived.</li>
+      </ul>
+      <p>No real names, no IP addresses, no tracking. Signing in sets one cookie, which only keeps
+        you signed in and is only ever sent to this site's account service. Delete your account
+        and all of it goes.</p>
+    </div>
+  </div>
+</section>
+"""
+
+verify = """
+<section class="hero hero--slim">
+  <div class="wrap">
+    <p class="eyebrow">Update emails</p>
+    <h1 class="hero__title">Confirming your address</h1>
+    <noscript><p class="notice">This page needs JavaScript turned on.</p></noscript>
+    <p id="verify-msg" class="msg msg--info">One moment&hellip;</p>
+    <div class="btn-row"><a class="btn btn--ghost" href="/account/">Go to your account</a></div>
+  </div>
+</section>
+"""
+
+commissions = f"""
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow eyebrow--brass">Work with us</p>
+    <h1 class="hero__title">Artist commissions</h1>
+    <p class="lede hero__lede">
+      Goggles &amp; Windchimes commissions illustration, maps and game art from independent
+      artists. Approved artists can see the open requisitions here and earmark one to take on.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <noscript><p class="notice">The tracker needs JavaScript turned on. The request form below does too.</p></noscript>
+    <p id="c-loading" class="msg msg--info">Checking whether you're signed in&hellip;</p>
+    <p id="c-state" class="msg" hidden></p>
+
+    <div id="c-signedout" class="panel" hidden>
+      <h2 class="panel__title">Already on the artist list?</h2>
+      <p class="panel__dek">Sign in to see the open reqs.</p>
+      <div class="form__actions"><a class="btn" href="/account/?next=/commissions/">Sign in</a></div>
+    </div>
+
+    <div id="c-notyet" class="panel" hidden>
+      <h2 class="panel__title">You're signed in as <span id="c-who"></span></h2>
+      <p class="panel__dek">That account isn't on the artist list yet. Send the form below with this
+        username and we'll add you.</p>
+    </div>
+
+    <div id="tracker" hidden>
+      <div class="tracker__head">
+        <div>
+          <p class="eyebrow">Signed in as <span id="t-who"></span></p>
+          <h2>Open requisitions</h2>
+        </div>
+        <p class="tracker__held">You're holding <strong id="t-held">0</strong></p>
+      </div>
+      <p id="t-msg" class="msg" hidden></p>
+      <ul id="reqs" class="reqlist"></ul>
+      <p id="reqs-empty" class="panel__dek" hidden>Nothing open right now. Check back soon.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="split">
+      <div class="prose">
+        <p class="eyebrow">How it works</p>
+        <h2>Getting on the list</h2>
+        <ol class="steps">
+          <li><a href="/account/#create">Create a free account</a>. A username and password are all it takes.</li>
+          <li>Send the form with that username and an email address we can reply to.</li>
+          <li>We'll add your account to the artist list and let you know.</li>
+          <li>Sign in, read a brief, and press <strong>Earmark</strong> to claim it. Each req goes to
+            one artist. If you can't do it after all, release it and it goes back on the list.</li>
+        </ol>
+        <p class="fineprint">The site never stores your email address. It travels inside the message to our
+          inbox, so we can reply, and nowhere else.</p>
+      </div>
+
+      <form id="f-access" class="panel form">
+        <h2 class="panel__title">Request artist access</h2>
+        <label class="field">Your G&amp;W username
+          <input name="username" id="acc-username" required maxlength="20" autocapitalize="off" spellcheck="false">
+        </label>
+        <label class="field">Email to reply to
+          <input name="email" type="email" autocomplete="email" required maxlength="254">
+        </label>
+        <label class="field">About you (optional)
+          <textarea name="note" rows="4" maxlength="2000" placeholder="A link to your portfolio, what you like to draw"></textarea>
+        </label>
+        {HONEYPOT}
+        <div class="form__actions"><button class="btn" type="submit">Send request</button></div>
+        <p id="acc-msg" class="msg" hidden></p>
+      </form>
+    </div>
+  </div>
+</section>
+"""
+
+commission_req = """
+<section class="hero hero--slim">
+  <div class="wrap">
+    <p class="eyebrow"><a href="/commissions/">&larr; All open reqs</a></p>
+    <h1 class="hero__title" id="q-title">Commission brief</h1>
+    <noscript><p class="notice">This page needs JavaScript turned on.</p></noscript>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p id="q-loading" class="msg msg--info">Loading the brief&hellip;</p>
+    <p id="q-msg" class="msg" hidden></p>
+    <a id="q-signin" class="btn" href="/account/" hidden>Sign in</a>
+    <div id="q-body" class="brief" hidden>
+      <div class="brief__side">
+        <div id="q-pill"></div>
+        <div id="q-facts"></div>
+        <div class="form__actions">
+          <button type="button" class="btn" id="q-earmark" hidden>Earmark this req</button>
+          <button type="button" class="btn btn--ghost" id="q-release" hidden>Release it</button>
+        </div>
+        <p id="q-mine-note" class="fineprint" hidden>You're holding this one. Other artists can't see it.</p>
+      </div>
+      <div class="prose">
+        <p class="lede" id="q-summary"></p>
+        <div id="q-desc"></div>
+      </div>
+    </div>
+  </div>
+</section>
+"""
+
+admin = """
+<section class="hero hero--slim">
+  <div class="wrap">
+    <p class="eyebrow">Goggles &amp; Windchimes</p>
+    <h1 class="hero__title">Admin</h1>
+    <noscript><p class="notice">This page needs JavaScript turned on.</p></noscript>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p id="a-loading" class="msg msg--info">Checking your account&hellip;</p>
+    <div id="a-denied" class="panel" hidden>
+      <h2 class="panel__title">Admins only</h2>
+      <p class="panel__dek">Sign in with an admin account to use this page.</p>
+      <div class="form__actions"><a id="a-signin" class="btn" href="/account/" hidden>Sign in</a></div>
+    </div>
+
+    <div id="a-panel" hidden>
+      <p class="eyebrow">Signed in as <span id="a-who"></span></p>
+      <div class="tabs" role="tablist" aria-label="Admin sections">
+        <button type="button" role="tab" id="tab-reqs" aria-selected="true">Commission reqs</button>
+        <button type="button" role="tab" id="tab-users" aria-selected="false">Accounts</button>
+        <button type="button" role="tab" id="tab-subs" aria-selected="false">Update list</button>
+      </div>
+
+      <div id="p-reqs">
+        <form id="f-req" class="panel form">
+          <h2 class="panel__title" id="req-form-title">Post a new req</h2>
+          <input type="hidden" name="id">
+          <label class="field">Title
+            <input name="title" required maxlength="120" placeholder="Bestiary plate: the Grubbin">
+          </label>
+          <label class="field">One-line summary
+            <input name="summary" maxlength="300" placeholder="Shown in the list">
+          </label>
+          <label class="field">The brief
+            <textarea name="description" rows="8" maxlength="8000"
+              placeholder="What you need, size and format, references, usage rights. Blank lines start new paragraphs."></textarea>
+          </label>
+          <div class="field-row">
+            <label class="field">Fee (optional)
+              <input name="fee" maxlength="80" placeholder="$150 flat">
+            </label>
+            <label class="field">Due (optional)
+              <input name="due" maxlength="40" placeholder="Mid-January">
+            </label>
+          </div>
+          <div class="form__actions">
+            <button class="btn" type="submit" id="req-submit">Post req</button>
+            <button class="linkbtn" type="button" id="req-cancel" hidden>Cancel editing</button>
+          </div>
+          <p id="req-msg" class="msg" hidden></p>
+        </form>
+        <p id="reqs-msg" class="msg" hidden></p>
+        <ul id="admin-reqs" class="adminlist"></ul>
+        <p id="admin-reqs-empty" class="panel__dek" hidden>No reqs yet.</p>
+      </div>
+
+      <div id="p-users" hidden>
+        <form id="f-user" class="panel form">
+          <h2 class="panel__title">Add an account</h2>
+          <p class="panel__dek">Usually artists create their own account and you just tick <em>Make artist</em>
+            below. Use this when you'd rather set one up for them: you get a temporary password to send,
+            and they choose their own when they first sign in.</p>
+          <div class="field-row">
+            <label class="field">Username
+              <input name="username" required maxlength="20" autocapitalize="off" spellcheck="false">
+            </label>
+            <div class="field">Roles
+              <label class="check"><input type="checkbox" name="artist" checked> <span>Artist</span></label>
+              <label class="check"><input type="checkbox" name="admin"> <span>Admin</span></label>
+            </div>
+          </div>
+          <div class="form__actions"><button class="btn btn--sm" type="submit">Create account</button></div>
+        </form>
+        <div id="temp-box" class="notice notice--brass" hidden>
+          <p><strong id="temp-label"></strong></p>
+          <p><code id="temp-pw" class="temp"></code></p>
+          <p>Shown once. Send it to them by email; they'll be asked to change it.</p>
+          <div class="row-actions">
+            <button type="button" class="btn btn--sm" id="temp-copy">Copy</button>
+            <button type="button" class="btn btn--ghost btn--sm" id="temp-hide">Done</button>
+          </div>
+        </div>
+        <p id="users-msg" class="msg" hidden></p>
+        <div class="listbar">
+          <span id="users-count" class="panel__dek"></span>
+          <label class="field field--inline">Find
+            <input id="users-filter" type="search" maxlength="20" autocapitalize="off" spellcheck="false">
+          </label>
+          <label class="check"><input type="checkbox" id="users-artists"> <span>Artists only</span></label>
+        </div>
+        <ul id="admin-users" class="adminlist"></ul>
+      </div>
+
+      <div id="p-subs" hidden>
+        <div class="panel">
+          <h2 class="panel__title">Update list</h2>
+          <p class="panel__dek"><span id="subs-count"></span>. Only send to confirmed addresses, use BCC,
+            and tell people how to opt out (untick updates on their account page).</p>
+          <div class="form__actions"><button type="button" class="btn btn--sm" id="subs-copy">Copy confirmed addresses</button></div>
+          <p id="subs-msg" class="msg" hidden></p>
+        </div>
+        <ul id="admin-subs" class="adminlist"></ul>
+        <p id="admin-subs-empty" class="panel__dek" hidden>Nobody has opted in yet.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -1340,6 +1785,8 @@ FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
 
 ROBOTS = f"""User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /admin/
 
 Sitemap: https://{DOMAIN}/sitemap.xml
 """
@@ -1361,6 +1808,15 @@ PAGES = [
     ("/press/",              "Press Kit",            "Press assets and boilerplate for Goggles & Windchimes.", press),
     ("/about/",              "About",                "Goggles for the tinkering. Windchimes for the rest. The story of the imprint.", about),
     ("/credits/",            "Credits & Licences",   "Third-party work used by Goggles & Windchimes titles, and its licence terms.", credits),
+    ("/commissions/",        "Artist commissions",   "Open illustration and game-art commissions from Goggles & Windchimes, and how artists get access.", commissions),
+    ("/account/",            "Your account",         "One Goggles & Windchimes account for cloud saves in every game. A username and a password; nothing else required.", account),
+]
+
+# Signed-in pages: built like the rest, but kept out of the sitemap and search results.
+PRIVATE_PAGES = [
+    ("/account/verify/",     "Confirm your email",   "Confirm the address for Goggles & Windchimes update emails.", verify),
+    ("/commissions/req/",    "Commission brief",     "A Goggles & Windchimes commission requisition. Artists only.", commission_req),
+    ("/admin/",              "Admin",                "Goggles & Windchimes site administration.", admin),
 ]
 
 
@@ -1369,6 +1825,8 @@ def main():
 
     for path, title, desc, body in PAGES:
         write(path, shell(title=title, desc=desc, path=path, body=body))
+    for path, title, desc, body in PRIVATE_PAGES:
+        write(path, shell(title=title, desc=desc, path=path, body=body, noindex=True))
 
     write("/404.html", shell(
         title="Page not found", desc="That page doesn't exist.",
@@ -1395,7 +1853,7 @@ def main():
         keep = ROOT / d / ".gitkeep"
         keep.write_text("", encoding="utf-8")
 
-    print(f"\nDone. {len(PAGES) + 1} pages.")
+    print(f"\nDone. {len(PAGES) + len(PRIVATE_PAGES) + 1} pages.")
 
 
 if __name__ == "__main__":
