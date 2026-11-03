@@ -1075,7 +1075,7 @@ press = """
 
     <ul class="facts">
       <li><div class="facts__k">Founded</div><div class="facts__v">2025</div></li>
-      <li><div class="facts__k">Founder</div><div class="facts__v">Ken Bewley</div></li>
+      <li><div class="facts__k">Founder</div><div class="facts__v">Ken Bewley (&ldquo;Vestav Kenji&rdquo;)</div></li>
       <li><div class="facts__k">Based</div><div class="facts__v">California, USA</div></li>
       <li><div class="facts__k">Contact</div><div class="facts__v"><a href="mailto:ninja-note@gandw.io">ninja-note@gandw.io</a></div></li>
     </ul>
@@ -1163,6 +1163,10 @@ about = """
       </blockquote>
       <p class="dek">
         Goggles &amp; Windchimes is that door, opened.
+      </p>
+      <p class="dek">
+        Around here he signs as <strong>Vestav Kenji</strong>. <em>Vestav</em> is Dhae for
+        &ldquo;chief&rdquo;; <em>Kenji</em> is his gaming handle.
       </p>
       <p class="fineprint">
         Adapted from the creative preface to <em>The Vale Universe Bible</em>.
