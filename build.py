@@ -51,6 +51,16 @@ FOOTER = [
     ]),
 ]
 
+# Site-wide announcement bar. Shown above the masthead on every page except the ones it
+# points at. Set to None to switch it off. Plain HTML: no script, no cookie, no dismiss state.
+BANNER = {
+    "text": "We're looking for artists.",
+    "detail": "Illustration, maps and game art for the Vale Universe and our games.",
+    "cta": "Request access",
+    "href": "/commissions/#f-access",
+    "hide_on": ("/commissions/", "/admin/"),
+}
+
 # The logo mark: a lens (goggles) and three struck tubes (windchimes).
 MARK = """<svg class="logo__mark" width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
   <circle cx="8.5" cy="9" r="5.2" stroke="#D9A441" stroke-width="1.5"/>
@@ -88,6 +98,18 @@ def shell(*, title, desc, path, body, page_class="", og=None, css=(), scripts=()
         for head, items in FOOTER
     )
 
+    banner = ""
+    if BANNER and not path.startswith(BANNER["hide_on"]):
+        banner = (
+            '\n<aside class="banner" aria-label="Announcement">\n'
+            '  <div class="wrap banner__inner">\n'
+            f'    <p class="banner__text"><strong>{html.escape(BANNER["text"])}</strong> '
+            f'<span class="banner__detail">{html.escape(BANNER["detail"])}</span></p>\n'
+            f'    <a class="banner__cta" href="{BANNER["href"]}">{html.escape(BANNER["cta"])} &rarr;</a>\n'
+            '  </div>\n'
+            '</aside>\n'
+        )
+
     full_title = title if title == SITE else f"{title} · {SITE}"
     og_img = og or OG.get(path, "/assets/og.png")
     extra = EXTRAS.get(path, {})
@@ -123,7 +145,7 @@ def shell(*, title, desc, path, body, page_class="", og=None, css=(), scripts=()
 </head>
 <body{f' class="{page_class}"' if page_class else ''}>
 <a class="skip" href="#main">Skip to content</a>
-
+{banner}
 <header class="masthead">
   <div class="wrap masthead__inner">
     <a class="logo" href="/">{MARK}<span>Goggles <span class="logo__amp">&amp;</span> Windchimes</span></a>
