@@ -481,8 +481,8 @@ versus = """
       <p class="eyebrow">Credits</p>
       <h2>Built on</h2>
       <p class="dek">
-        VERSUS uses Twemoji (CC-BY 4.0, Twitter), Leaflet for the map, and photography
-        from Unsplash. The world map is ours. Full attribution is on the
+        VERSUS uses OpenMoji (CC BY-SA 4.0) for its creatures, Leaflet for the map, and
+        battle backdrops photographed by Ken Bewley. The world map is ours too. Full attribution is on the
         <a href="/credits/">credits page</a>.
       </p>
     </div>
@@ -1284,16 +1284,25 @@ credits = """
     <h2>Attribution</h2>
     <ul class="stack">
       <li>
-        <span class="stack__k">Twemoji</span>
+        <span class="stack__k">OpenMoji</span>
         <span class="stack__v">
-          Creature and interface glyphs are Twemoji, &copy; Twitter Inc. and contributors,
-          licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY 4.0</a>.
+          Creature and interface glyphs by default. All emojis designed by
+          <a href="https://openmoji.org/">OpenMoji</a>, the open-source emoji and icon project,
+          licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
+          Used unmodified.
         </span>
       </li>
       <li>
-        <span class="stack__k">Unsplash</span>
+        <span class="stack__k">Twemoji</span>
         <span class="stack__v">
-          Battle backdrop photography under the Unsplash Licence.
+          Optional glyph set, selectable in the game&rsquo;s Credits screen. &copy; Twitter Inc. and
+          contributors, licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY 4.0</a>.
+        </span>
+      </li>
+      <li>
+        <span class="stack__k">Photography</span>
+        <span class="stack__v">
+          Battle backdrops and title art are original photographs, &copy; Ken Bewley. All rights reserved.
         </span>
       </li>
       <li>
