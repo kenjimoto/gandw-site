@@ -214,6 +214,13 @@ def main():
         d = Path(args.versus).expanduser().resolve()
         if not d.is_dir():
             sys.exit(f"--versus: not a directory: {d}")
+        # Serve the BUILT game when there is one: since Nov 2026 the page loads versus-core.js
+        # (the battle engine), which exists only in dist/. Mixing dist/index.html with repo-root
+        # assets (the old behaviour) gave a page that couldn't start. Production serves dist/.
+        if (d / "dist" / "index.html").is_file():
+            d = d / "dist"
+        elif not (d / "versus-core.js").is_file():
+            print("  note: no dist/ in the VERSUS folder: run `npm run build` there, or the game can't start")
         Handler.versus_dir = d
         Handler.base_path = "/" + args.base_path.strip("/")
 
