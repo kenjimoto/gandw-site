@@ -152,6 +152,9 @@ python serve.py --api --seed --versus "D:/Projects/03_Game_Dev/versus"   # with 
 - Locally the session cookie isn't `Secure`, because there's no https. In production it is.
 - `--versus` serves the VERSUS `dist/` folder, so run `npm run build` in VERSUS after editing
   `versus.html` or anything in `packages/core`.
+- With `--api` too, and a built engine in the VERSUS folder (`npm run build:engine` there),
+  the API's PvP engine hook (`api/engine.py`) runs it with your local `node`. Production calls
+  the private `gandw-versus-engine` Lambda instead.
 
 Without `--api`, those pages load but say the account service isn't available. That's
 correct, and it's what CI checks.
