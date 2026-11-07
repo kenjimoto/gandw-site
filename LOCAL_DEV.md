@@ -54,8 +54,9 @@ python serve.py --versus "D:\Projects\03_Game_Dev\versus"
 ```
 
 Now `/versus/` serves the game and the rest of the site serves normally, exactly as
-CloudFront will route it. It looks for `dist/index.html` first, then `index.html`, then
-`versus.html`, so it works whether or not you've run the build.
+CloudFront will route it. When the VERSUS folder has a `dist/` (from `npm run build`), the whole
+`/versus/` mount is served from it, the same files production serves. **Build first:** since
+November 2026 the page loads `versus-core.js` (the battle engine), which only exists in `dist/`.
 
 Without `--versus`, the `/versus/` path 404s. **That is correct** — the game deploys from
 its own repo, and its absence locally is not a broken link.
@@ -149,8 +150,8 @@ python serve.py --api --seed --versus "D:/Projects/03_Game_Dev/versus"   # with 
 - Emails aren't sent. They're printed in the server window, so you can click a
   confirmation link or read an access request.
 - Locally the session cookie isn't `Secure`, because there's no https. In production it is.
-- `--versus` serves `dist/index.html` if it exists, so run `npm run build` in VERSUS after
-  editing `versus.html`, or delete `dist/`.
+- `--versus` serves the VERSUS `dist/` folder, so run `npm run build` in VERSUS after editing
+  `versus.html` or anything in `packages/core`.
 
 Without `--api`, those pages load but say the account service isn't available. That's
 correct, and it's what CI checks.
