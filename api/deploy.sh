@@ -15,7 +15,7 @@ zip_file="$(mktemp -d)/gandw-api.zip"
 python3 - "$zip_file" <<'PY'
 import sys, zipfile
 with zipfile.ZipFile(sys.argv[1], "w", zipfile.ZIP_DEFLATED) as z:
-    for f in ("app.py", "store.py", "mailer.py"):
+    for f in ("app.py", "store.py", "mailer.py", "engine.py"):
         z.write(f)
 PY
 

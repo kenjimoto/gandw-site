@@ -217,6 +217,9 @@ def main():
         # Serve the BUILT game when there is one: since Nov 2026 the page loads versus-core.js
         # (the battle engine), which exists only in dist/. Mixing dist/index.html with repo-root
         # assets (the old behaviour) gave a page that couldn't start. Production serves dist/.
+        # the PvP engine, if VERSUS has built it (npm run build:engine): api/engine.py runs it with node
+        if args.api and (d / "dist-engine" / "index.mjs").is_file():
+            os.environ.setdefault("ENGINE_LOCAL", str(d / "dist-engine" / "index.mjs"))
         if (d / "dist" / "index.html").is_file():
             d = d / "dist"
         elif not (d / "versus-core.js").is_file():
@@ -230,6 +233,8 @@ def main():
         print(f"  /api     local account API  (data: .local-api.json, mail printed here)")
     if Handler.versus_dir:
         print(f"  /versus  {Handler.versus_dir}")
+    if os.environ.get("ENGINE_LOCAL"):
+        print(f"  engine   {os.environ['ENGINE_LOCAL']}  (local node)")
     else:
         print(f"  /versus  not mounted — that path will 404 (correct; the game deploys separately)")
     print(f"\n  →  http://{args.host}:{args.port}/\n")
