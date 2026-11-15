@@ -31,6 +31,7 @@ import time
 from urllib.parse import parse_qs
 
 from store import Conflict
+import world
 
 # --------------------------------------------------------------------------- settings
 
@@ -217,6 +218,8 @@ class App:
         R("GET", r"/api/games/(?P<game>[a-z0-9-]+)/save", self.get_save, auth=True)
         R("PUT", r"/api/games/(?P<game>[a-z0-9-]+)/save", self.put_save, auth=True)
         R("DELETE", r"/api/games/(?P<game>[a-z0-9-]+)/save", self.delete_save, auth=True)
+        R("GET", r"/api/games/versus/world", self.world_get)
+        R("POST", r"/api/games/versus/world/(?P<cid>w[0-9]+-[1-3])", self.world_add, auth=True)
         R("GET", r"/api/commissions/reqs", self.list_reqs, role="artist")
         R("GET", r"/api/commissions/reqs/(?P<rid>[a-z0-9]+)", self.get_req, role="artist")
         R("POST", r"/api/commissions/reqs/(?P<rid>[a-z0-9]+)/earmark", self.earmark, role="artist")
@@ -527,6 +530,52 @@ class App:
             return Response(200, {"save": None})
         return Response(200, {"save": {"data": json.loads(s["data"]), "rev": s["rev"],
                                        "updated": iso(s["updated"]), "summary": s.get("summary") or {}}})
+
+    # ------------------------------------------------------------------ VERSUS world contracts
+    def world_get(self, req):
+        """This week's world contracts. Anyone can look; a signed-in player also sees their own share."""
+        week = world.week_of(now())
+        user = self.current_user(req)
+        pk = f"VW#{week}"
+        rows = {i["sk"]: i for i in self.db.query(pk)}
+        name = user["sk"][2:] if user else None
+        out = []
+        for c in world.week_contracts(week):
+            mine = rows.get(f"p#{c['id']}#{name}", {}).get("amount", 0) if name else 0
+            out.append(world.view(c, rows.get(f"c#{c['id']}"), mine))
+        return Response(200, {"week": week, "ends": iso((week + 1) * world.WEEK), "contracts": out})
+
+    def world_add(self, req, cid):
+        """A player reports progress on a world contract. Capped per player per day; closes at the target."""
+        week = world.week_of(now())
+        c = next((x for x in world.week_contracts(week) if x["id"] == cid), None)
+        if not c:
+            raise bad("expired", "That contract is from another week.", 409)
+        b = req.json()
+        amount = b.get("amount")
+        if not isinstance(amount, int) or isinstance(amount, bool) or amount < 1 or amount > world.MAX_ADD:
+            raise bad("bad_input", f"amount must be a whole number from 1 to {world.MAX_ADD}.")
+        pk, name = f"VW#{week}", req.user["sk"][2:]
+        ttl = (week + 3) * world.WEEK
+        state = self.db.get(pk, f"c#{cid}")
+        if state and state.get("closed"):
+            return Response(200, {"contract": world.view(c, state, (self.db.get(pk, f"p#{cid}#{name}") or {}).get("amount", 0)),
+                                  "added": 0})
+        day = now() // 86400
+        mine = self.db.get(pk, f"p#{cid}#{name}") or {}
+        today = mine.get("today", 0) if mine.get("day") == day else 0
+        room = world.daily_cap(c["base"]) - today
+        add = max(0, min(amount, room))
+        if add == 0:
+            return Response(200, {"contract": world.view(c, state, mine.get("amount", 0)), "added": 0,
+                                  "message": "That's all the Guild will count from you today."})
+        first = not mine.get("amount")
+        mine = self.db.update(pk, f"p#{cid}#{name}", {"day": day, "today": today + add, "ttl": ttl,
+                                                       "amount": mine.get("amount", 0) + add})
+        state = self.db.add(pk, f"c#{cid}", {"total": add, "players": 1 if first else 0})
+        if state.get("total", 0) >= world.target(c["base"], state.get("players", 0)) and not state.get("closed"):
+            state = self.db.update(pk, f"c#{cid}", {"closed": True, "closed_at": now(), "ttl": ttl})
+        return Response(200, {"contract": world.view(c, state, mine["amount"]), "added": add})
 
     def put_save(self, req, game):
         self._game(game)
