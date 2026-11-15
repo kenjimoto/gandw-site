@@ -118,6 +118,18 @@ class MemoryStore:
             self._flush()
             return cur["n"]
 
+    def add(self, pk, sk, adds):
+        """Atomically add numbers to fields (creating the item and the fields at 0). Returns the item."""
+        with self._lock:
+            cur = self._d.get((pk, sk))
+            if cur is None or _expired(cur):
+                cur = {"pk": pk, "sk": sk}
+            for k, v in adds.items():
+                cur[k] = cur.get(k, 0) + v
+            self._d[(pk, sk)] = cur
+            self._flush()
+            return json.loads(json.dumps(cur))
+
     def delete(self, pk, sk, cond=None):
         with self._lock:
             self._check(self._d.get((pk, sk)), cond)
@@ -216,6 +228,15 @@ class DynamoStore:
             self._t.put_item(Item={"pk": pk, "sk": sk, "n": 1, "ttl": ttl})
             return 1
         return it["n"]
+
+    def add(self, pk, sk, adds):
+        names = {f"#a{i}": k for i, k in enumerate(adds)}
+        values = {f":a{i}": v for i, v in enumerate(adds.values())}
+        r = self._t.update_item(Key={"pk": pk, "sk": sk},
+                                UpdateExpression="ADD " + ", ".join(f"#a{i} :a{i}" for i in range(len(adds))),
+                                ExpressionAttributeNames=names, ExpressionAttributeValues=values,
+                                ReturnValues="ALL_NEW")
+        return _plain(r["Attributes"])
 
     def delete(self, pk, sk, cond=None):
         self._run(self._t.delete_item, Key={"pk": pk, "sk": sk}, **self._cond(cond))

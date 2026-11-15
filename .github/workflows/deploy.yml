@@ -3,7 +3,8 @@ name: Deploy gandw.io
 # Push to main -> rebuild -> validate -> publish to S3 behind CloudFront.
 # A broken site can't go live: the build must match what's committed and check.py must pass.
 # Auth is GitHub OIDC into the gandw-site-deploy role (no AWS keys anywhere). That role can
-# write anything in the bucket EXCEPT versus/, which belongs to the VERSUS repo.
+# write anything in the bucket EXCEPT versus/, which belongs to the VERSUS repo, and publish
+# the account API code to the gandw-api Lambda.
 on:
   push:
     branches: [main]
@@ -90,6 +91,10 @@ jobs:
           aws s3 sync . "s3://${BUCKET}" --delete \
             --exclude "versus/*" --exclude ".git/*" --exclude ".github/*" "${EXCLUDES[@]}" \
             --cache-control "public, max-age=300"
+
+      - name: Publish the account API (gandw-api Lambda, code only)
+        # The deploy role may only update gandw-api's code; the gandw-api stack owns the rest.
+        run: bash api/deploy.sh
 
       - name: Invalidate CloudFront
         run: |
