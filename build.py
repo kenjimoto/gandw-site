@@ -188,6 +188,9 @@ EXTRAS = {
     "/commissions/":      {"scripts": ["/assets/js/gw.js", "/assets/js/commissions.js"]},
     "/commissions/req/":  {"scripts": ["/assets/js/gw.js", "/assets/js/commissions.js"]},
     "/admin/":            {"scripts": ["/assets/js/gw.js", "/assets/js/admin.js"]},
+    # the checker is the game's own (built by the VERSUS repo, served from /versus/content/)
+    "/admin/versus/":     {"scripts": ["/assets/js/gw.js", "/versus/content/workbook-check.js",
+                                       "/assets/js/versus-content.js"]},
     "/vale/atlas/": {
         "css": ["/assets/vale/globe.css"],
         "scripts": ["/assets/vale/three.min.js", "/assets/vale/OrbitControls.js",
@@ -1696,7 +1699,7 @@ admin = """
     </div>
 
     <div id="a-panel" hidden>
-      <p class="eyebrow">Signed in as <span id="a-who"></span></p>
+      <p class="eyebrow">Signed in as <span id="a-who"></span> &middot; <a href="/admin/versus/">VERSUS content &rarr;</a></p>
       <div class="tabs" role="tablist" aria-label="Admin sections">
         <button type="button" role="tab" id="tab-reqs" aria-selected="true">Commission reqs</button>
         <button type="button" role="tab" id="tab-users" aria-selected="false">Accounts</button>
@@ -1748,6 +1751,7 @@ admin = """
             </label>
             <div class="field">Roles
               <label class="check"><input type="checkbox" name="artist" checked> <span>Artist</span></label>
+              <label class="check"><input type="checkbox" name="author"> <span>Author (VERSUS content)</span></label>
               <label class="check"><input type="checkbox" name="admin"> <span>Admin</span></label>
             </div>
           </div>
@@ -1847,11 +1851,82 @@ PAGES = [
     ("/account/",            "Your account",         "One Goggles & Windchimes account for cloud saves in every game. A username and a password; nothing else required.", account),
 ]
 
+admin_versus = """
+<section class="hero hero--slim">
+  <div class="wrap">
+    <p class="eyebrow"><a href="/admin/">Admin</a></p>
+    <h1 class="hero__title">VERSUS content</h1>
+    <p class="hero__lede">Upload the content workbook, play it yourself, then publish it to everyone.</p>
+    <noscript><p class="notice">This page needs JavaScript turned on.</p></noscript>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p id="c-loading" class="msg msg--info">Checking your account&hellip;</p>
+    <div id="c-denied" class="panel" hidden>
+      <h2 class="panel__title">Authors only</h2>
+      <p class="panel__dek">Sign in with an account that has the author or admin role. An admin can grant it on the Accounts tab of the admin page.</p>
+      <div class="form__actions"><a id="c-signin" class="btn" href="/account/" hidden>Sign in</a></div>
+    </div>
+
+    <div id="c-panel" hidden>
+      <p class="eyebrow">Signed in as <span id="c-who"></span></p>
+
+      <div class="panel">
+        <h2 class="panel__title">Where things stand</h2>
+        <ul id="c-status" class="ticks"></ul>
+        <p id="c-status-msg" class="msg" hidden></p>
+        <div class="row-actions">
+          <button type="button" class="btn btn--ghost btn--sm" id="c-dl-game">Download the game's own workbook (CSV files)</button>
+          <button type="button" class="btn btn--ghost btn--sm" id="c-unstage" hidden>Stop seeing my staged content</button>
+        </div>
+      </div>
+
+      <form id="c-upload" class="panel form">
+        <h2 class="panel__title">Check a workbook</h2>
+        <p class="panel__dek">An .xlsx file (the Sheet downloaded as Excel), or the workbook's CSV files (one per tab,
+          named like quests.csv). Every row is checked with the game's own rules before anything is sent.</p>
+        <label class="field">Workbook
+          <input type="file" name="file" accept=".xlsx,.csv" multiple required>
+        </label>
+        <div class="form__actions"><button class="btn btn--sm" type="submit">Check it</button></div>
+        <p id="c-check-msg" class="msg" hidden></p>
+      </form>
+
+      <div id="c-result" class="panel" hidden>
+        <h2 class="panel__title" id="c-result-title"></h2>
+        <div id="c-problems"></div>
+        <div id="c-diff"></div>
+        <form id="c-stage" class="form" hidden>
+          <label class="field">Note (what changed, for the version list)
+            <input name="note" maxlength="300">
+          </label>
+          <div class="form__actions"><button class="btn btn--sm" type="submit">Stage it: only you see it in the game</button></div>
+        </form>
+        <p id="c-stage-msg" class="msg" hidden></p>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel__title">Versions</h2>
+        <p class="panel__dek">Stage a version to play it yourself at <a href="/versus/">/versus/</a>. Publish one to give it to
+          everyone; publishing an older version rolls back to it.</p>
+        <ul id="c-versions" class="adminlist"></ul>
+        <p id="c-versions-empty" class="panel__dek" hidden>Nothing uploaded yet: the game is using its own content.</p>
+        <p id="c-versions-msg" class="msg" hidden></p>
+      </div>
+    </div>
+  </div>
+</section>
+"""
+
+
 # Signed-in pages: built like the rest, but kept out of the sitemap and search results.
 PRIVATE_PAGES = [
     ("/account/verify/",     "Confirm your email",   "Confirm the address for Goggles & Windchimes update emails.", verify),
     ("/commissions/req/",    "Commission brief",     "A Goggles & Windchimes commission requisition. Artists only.", commission_req),
     ("/admin/",              "Admin",                "Goggles & Windchimes site administration.", admin),
+    ("/admin/versus/",       "VERSUS content",       "Upload, stage and publish VERSUS content.", admin_versus),
 ]
 
 

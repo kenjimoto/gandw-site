@@ -708,3 +708,15 @@ details.danger[open] summary { margin-bottom: 1rem; }
 /* jump links land below the sticky masthead, not under it */
 #f-access { scroll-margin-top: 6rem; }
 @media (max-width: 48rem) { #f-access { scroll-margin-top: 10rem; } }
+
+/* /admin/versus/: workbook problems and changes */
+.probs { width: 100%; border-collapse: collapse; margin: 0.75rem 0 0; font-size: 0.88rem; }
+.probs th, .probs td { text-align: left; padding: 0.35rem 0.6rem 0.35rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.probs th { color: var(--faint); font-weight: 600; }
+.probs td:last-child { overflow-wrap: anywhere; }
+.probs--err td:first-child { color: #F0C9C0; }
+.changes { margin: 0.75rem 0 0; padding-left: 1.1rem; color: var(--muted); font-size: 0.93rem; }
+.changes code { color: var(--paper); }
+.pill--author { color: var(--verdigris); }
+.pill--live { color: var(--verdigris); }
+.pill--staged { color: var(--brass); }

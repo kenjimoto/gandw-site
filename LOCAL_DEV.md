@@ -159,4 +159,15 @@ python serve.py --api --seed --versus "D:/Projects/03_Game_Dev/versus"   # with 
 Without `--api`, those pages load but say the account service isn't available. That's
 correct, and it's what CI checks.
 
+### VERSUS content (`/admin/versus/`)
+
+Authors (a role an admin grants on the Accounts tab; admins have it too) upload the VERSUS
+content workbook here: an .xlsx, or the tab CSVs. The page checks every row with the game's
+own checker, `/versus/content/workbook-check.js`, against `/versus/content/workbook.json`
+(both built by the VERSUS repo), so run it with `--versus` (and `--api`). Each upload is a
+numbered version. **Stage** shows it only to you in the game; **Publish** gives it to everyone;
+publishing an older version rolls back. The game loads `/api/games/versus/content.js` before it
+starts, and uses it only if it was made from the game's current workbook (its `base`).
+Code: `api/content.py`, `assets/js/versus-content.js`. Tests: `api/test_content.py`.
+
 API tests (stdlib, about a second): `python -m unittest discover -s api`

@@ -126,7 +126,8 @@
         var roles = el('span', { class: 'pillrow' });
         u.roles.forEach(function (x) { roles.appendChild(el('span', { class: 'pill pill--' + x, text: x })); });
         var actions = el('div', { class: 'row-actions' },
-          btn(hasRole(u, 'artist') ? 'Remove artist' : 'Make artist', function () { toggleRole(u, 'artist'); }));
+          btn(hasRole(u, 'artist') ? 'Remove artist' : 'Make artist', function () { toggleRole(u, 'artist'); }),
+          btn(hasRole(u, 'author') ? 'Remove author' : 'Make author', function () { toggleRole(u, 'author'); }));
         if (!self) {
           actions.append(hasRole(u, 'admin')
             ? GW.confirmButton('Remove admin', 'Click again to confirm', function () { toggleRole(u, 'admin'); })
@@ -217,6 +218,7 @@
       var f = e.target, d = GW.formData(f);
       var roles = ['player'];
       if (d.artist) roles.push('artist');
+      if (d.author) roles.push('author');
       if (d.admin) roles.push('admin');
       GW.busy(f, true);
       GW.api('POST', '/admin/users', { username: d.username, roles: roles }).then(function (r) {

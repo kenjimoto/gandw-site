@@ -56,11 +56,11 @@ class Handler(SimpleHTTPRequestHandler):
         req = api_mod.Request(self.command, u.path, dict(self.headers.items()), cookies, body,
                               {k: v[0] for k, v in parse_qs(u.query).items()})
         resp = self.api.handle(req)
-        out = json.dumps(resp.body).encode()
+        out = resp.payload().encode()
         self.send_response(resp.status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Type", resp.ctype)
         self.send_header("Content-Length", str(len(out)))
-        self.send_header("Cache-Control", "no-store")
+        self.send_header("Cache-Control", resp.cache)
         for c in resp.cookies:
             self.send_header("Set-Cookie", c)
         self.end_headers()

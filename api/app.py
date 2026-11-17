@@ -13,7 +13,8 @@ No real names, no IP addresses, no analytics. Game saves hang off the account by
 Roles
   player   everyone
   artist   granted by an admin; can see and earmark commission reqs
-  admin    can manage reqs and accounts
+  author   granted by an admin; can upload, stage and publish VERSUS content (/admin/versus/)
+  admin    can manage reqs and accounts, and everything an artist or author can
 
 Status codes: the CloudFront distribution rewrites 403 and 404 responses into the site's
 404 page for EVERY path, including /api/*. So this API never returns 403 or 404. It uses
@@ -31,6 +32,7 @@ import time
 from urllib.parse import parse_qs
 
 from store import Conflict
+import content as vcontent
 import world
 
 # --------------------------------------------------------------------------- settings
@@ -185,10 +187,17 @@ class Request:
 
 
 class Response:
-    def __init__(self, status=200, body=None, cookies=None):
+    """A JSON response; or, with `text`, a plain body of type `ctype` (e.g. a script)."""
+    def __init__(self, status=200, body=None, cookies=None, text=None, ctype=None, cache="no-store"):
         self.status = status
         self.body = body if body is not None else {}
         self.cookies = cookies or []
+        self.text = text
+        self.ctype = ctype or "application/json; charset=utf-8"
+        self.cache = cache
+
+    def payload(self):
+        return self.text if self.text is not None else json.dumps(self.body)
 
 
 # --------------------------------------------------------------------------- the app
@@ -220,6 +229,14 @@ class App:
         R("DELETE", r"/api/games/(?P<game>[a-z0-9-]+)/save", self.delete_save, auth=True)
         R("GET", r"/api/games/versus/world", self.world_get)
         R("POST", r"/api/games/versus/world/(?P<cid>w[0-9]+-[1-3])", self.world_add, auth=True)
+        R("GET", r"/api/games/versus/content\.js", self.content_script)
+        R("GET", r"/api/games/versus/content", self.content_get)
+        R("GET", r"/api/admin/versus/content", self.content_list, role="author")
+        R("POST", r"/api/admin/versus/content", self.content_upload, role="author")
+        R("GET", r"/api/admin/versus/content/(?P<v>v[0-9]{1,6})", self.content_version, role="author")
+        R("POST", r"/api/admin/versus/content/(?P<v>v[0-9]{1,6})/stage", self.content_stage, role="author")
+        R("POST", r"/api/admin/versus/content/(?P<v>v[0-9]{1,6})/publish", self.content_publish, role="author")
+        R("DELETE", r"/api/admin/versus/stage", self.content_unstage, role="author")
         R("GET", r"/api/commissions/reqs", self.list_reqs, role="artist")
         R("GET", r"/api/commissions/reqs/(?P<rid>[a-z0-9]+)", self.get_req, role="artist")
         R("POST", r"/api/commissions/reqs/(?P<rid>[a-z0-9]+)/earmark", self.earmark, role="artist")
@@ -750,7 +767,7 @@ class App:
         return Response(200, {"users": out})
 
     def _roles(self, roles):
-        if not isinstance(roles, list) or any(r not in ("player", "artist", "admin") for r in roles):
+        if not isinstance(roles, list) or any(r not in ("player", "artist", "author", "admin") for r in roles):
             raise bad("bad_input", "Roles must be a list of player, artist, admin.")
         return sorted(set(roles) | {"player"})
 
@@ -798,6 +815,88 @@ class App:
         self._purge_user(u)
         return Response(200, {"ok": True})
 
+    # ------------------------------------------------------------------ VERSUS content (step 3)
+    def _version(self, v):
+        item = self.db.get("VC", vcontent.mk(v[1:]))
+        if not item:
+            raise bad("no_version", f"There is no version {v}.")
+        return item
+
+    def _body(self, n):
+        return json.loads(self.db.get("VC", vcontent.sk(n))["content"])
+
+    def _live_payload(self, user):
+        """What the game should load: the author's staged version, else the published one."""
+        item, staged = None, False
+        if user and ("author" in user.get("roles", []) or "admin" in user.get("roles", [])):
+            st = self.db.get("VC", "stage#" + user["sk"][2:])
+            if st:
+                item, staged = self.db.get("VC", vcontent.mk(st["n"])), True
+        if not item:
+            live = self.db.get("VC", "live")
+            item = self.db.get("VC", vcontent.mk(live["n"])) if live else None
+        if not item:
+            return None
+        n = int(item["n"])
+        return {"version": f"v{n}", "base": item["base"], "core": item["core"], "staged": staged,
+                "by": item.get("by") if staged else None, "content": self._body(n)}
+
+    def content_script(self, req):
+        """The game loads this before it starts. Without published content it sets nothing."""
+        p = self._live_payload(self.current_user(req))
+        text = vcontent.as_script(p) if p else "/* no published content: the game uses its own */\n"
+        return Response(200, text=text, ctype="application/javascript; charset=utf-8", cache="no-store")
+
+    def content_get(self, req):
+        p = self._live_payload(None)
+        return Response(200, p or {"version": None})
+
+    def content_list(self, req):
+        live = self.db.get("VC", "live")
+        st = self.db.get("VC", "stage#" + req.user["sk"][2:])
+        items = self.db.query("VC", "m#")
+        items.sort(key=lambda i: -int(i["n"]))
+        return Response(200, {"live": f"v{int(live['n'])}" if live else None,
+                              "staged": f"v{int(st['n'])}" if st else None,
+                              "versions": [vcontent.meta(i) for i in items[:50]]})
+
+    def content_version(self, req, v):
+        item = self._version(v)
+        return Response(200, {**vcontent.meta(item), "content": self._body(int(item["n"]))})
+
+    def content_upload(self, req):
+        b = req.json()
+        try:
+            body, counts = vcontent.check(b.get("content"), b.get("base"), b.get("core"))
+        except vcontent.ContentError as e:
+            raise bad("bad_content", str(e))
+        note = text(b.get("note"), "Note", 300)
+        n = int(self.db.add("VC", "seq", {"n": 1})["n"])
+        me = req.user["sk"][2:]
+        self.db.put({"pk": "VC", "sk": vcontent.sk(n), "n": n, "content": body})
+        self.db.put({"pk": "VC", "sk": vcontent.mk(n), "n": n, "base": b["base"], "core": b["core"],
+                     "note": note, "by": req.user["name"], "at": now(), "size": len(body.encode()), "counts": counts})
+        self.db.put({"pk": "VC", "sk": "stage#" + me, "n": n, "at": now()})
+        return Response(200, {"version": f"v{n}", "staged": True})
+
+    def content_stage(self, req, v):
+        item = self._version(v)
+        self.db.put({"pk": "VC", "sk": "stage#" + req.user["sk"][2:], "n": int(item["n"]), "at": now()})
+        return Response(200, {"staged": v})
+
+    def content_unstage(self, req):
+        self.db.delete("VC", "stage#" + req.user["sk"][2:])
+        return Response(200, {"staged": None})
+
+    def content_publish(self, req, v):
+        item = self._version(v)
+        n = int(item["n"])
+        self.db.put({"pk": "VC", "sk": "live", "n": n, "at": now(), "by": req.user["name"]})
+        self.db.update("VC", vcontent.mk(n), {"published_at": now(), "published_by": req.user["name"]})
+        # the publisher now sees what everyone sees
+        self.db.delete("VC", "stage#" + req.user["sk"][2:])
+        return Response(200, {"live": v})
+
     def admin_subscribers(self, req):
         subs = [{"username": u["name"], "email": u["email"], "status": u.get("email_status"),
                  "since": iso(u.get("email_at"))}
@@ -811,10 +910,10 @@ class App:
 def to_lambda(resp):
     return {
         "statusCode": resp.status,
-        "headers": {"content-type": "application/json; charset=utf-8",
-                    "cache-control": "no-store", "x-content-type-options": "nosniff"},
+        "headers": {"content-type": resp.ctype,
+                    "cache-control": resp.cache, "x-content-type-options": "nosniff"},
         "cookies": resp.cookies,
-        "body": json.dumps(resp.body),
+        "body": resp.payload(),
     }
 
 
