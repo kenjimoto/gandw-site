@@ -123,8 +123,8 @@ def main():
         sys.exit(f"Can't reach {base} — is serve.py running?")
 
     # Signed-in pages aren't linked from public pages, so seed them explicitly.
-    seen, queue = set(), ["/", "/account/verify/", "/commissions/req/", "/admin/"]
-    private = {"/account/verify/", "/commissions/req/", "/admin/"}
+    seen, queue = set(), ["/", "/account/verify/", "/commissions/req/", "/admin/", "/admin/versus/"]
+    private = {"/account/verify/", "/commissions/req/", "/admin/", "/admin/versus/"}
     problems = defaultdict(list)
     titles = defaultdict(list)
     pages = assets_ok = 0
@@ -215,6 +215,8 @@ def main():
                     for rx, label in RESTRICTED:
                         if rx.search(abody):
                             problems[a].append(f"{label}")
+            elif st == 404 and any(a.startswith(x) for x in args.expect_404):
+                pass                       # the game's own files (e.g. /admin/versus/'s checker): deployed separately
             else:
                 problems[path].append(f"asset {a} -> HTTP {st}")
 
