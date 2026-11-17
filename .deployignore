@@ -13,3 +13,5 @@ assets/downloads/Oon_Publication_v2.pdf
 # account API source: deployed to Lambda by api/deploy.sh, never to S3
 api/
 .local-api.json
+# context for Claude, not part of the site
+CLAUDE.md
